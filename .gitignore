@@ -1,0 +1,5 @@
+venv/
+*.pyc
+instance/
+__pycache__/
+site.db

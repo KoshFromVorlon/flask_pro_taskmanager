@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Привет, {{ name }}! Твои задачи:</h2>
+
+<form method="POST">
+    <input type="text" name="content" placeholder="Купить молоко..." required>
+    <button type="submit">Добавить</button>
+</form>
+
+<ul>
+    {% for task in tasks %}
+    <li class="{% if task.completed %}done{% endif %}" id="task-{{ task.id }}">
+        <span onclick="toggleTask({{ task.id }})">{{ task.content }}</span>
+    </li>
+    {% endfor %}
+</ul>
+<p><small>Кликни на текст задачи, чтобы завершить её.</small></p>
+{% endblock %}
