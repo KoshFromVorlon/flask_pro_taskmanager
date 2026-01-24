@@ -5,20 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Pro TaskManager</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body class="bg-light">
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow-sm">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="/">🚀 TaskMaster Pro</a>
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="bi bi-check2-square"></i> TaskMaster Pro
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     {% if current_user.is_authenticated %}
-                        <li class="nav-item"><a class="nav-link" href="/admin">⚙️ Админка</a></li>
+                        {% if current_user.is_admin %}
+                        <li class="nav-item"><a class="nav-link" href="/admin"><i class="bi bi-gear"></i> Админка</a></li>
+                        {% endif %}
                         <li class="nav-item"><span class="nav-link text-warning">{{ current_user.username }}</span></li>
                         <li class="nav-item"><a class="btn btn-outline-light btn-sm ms-2" href="/logout">Выйти</a></li>
                     {% else %}

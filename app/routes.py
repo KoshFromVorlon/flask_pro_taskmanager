@@ -19,7 +19,7 @@ def register():
             return redirect(url_for('main.register'))
 
         user = User(username=username, password=generate_password_hash(password, method='scrypt'))
-        # Первый юзер - админ
+        # Первый пользователь становится админом
         if User.query.count() == 0: user.is_admin = True
 
         db.session.add(user)
@@ -60,13 +60,16 @@ def logout():
 def index():
     if request.method == 'POST':
         content = request.form.get('content')
+        category = request.form.get('category')
+
         if content:
-            new_task = Task(content=content, author=current_user)
+            new_task = Task(content=content, category=category, author=current_user)
             db.session.add(new_task)
             db.session.commit()
             flash('Задача добавлена!', 'success')
             return redirect(url_for('main.index'))
 
+    # Сортировка: сначала незавершенные, потом новые
     tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.completed, Task.date_created.desc()).all()
     return render_template('index.html', tasks=tasks)
 
