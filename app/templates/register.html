@@ -1,9 +1,28 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Регистрация</h2>
-<form method="POST">
-    <input type="text" name="username" placeholder="Логин" required>
-    <input type="password" name="password" placeholder="Пароль" required>
-    <button type="submit">Войти</button>
-</form>
+<div class="row justify-content-center mt-5">
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-body p-4">
+                <h3 class="text-center mb-4">Регистрация в системе</h3>
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Регистрация</label>
+                        <input type="text" name="username" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Пароль</label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Войти</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center bg-white border-0 pb-3">
+                <small>Нет аккаунта? <a href="/register">Зарегистрироваться</a></small>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

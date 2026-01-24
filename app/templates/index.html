@@ -1,18 +1,41 @@
 {% extends "base.html" %}
+
 {% block content %}
-<h2>Привет, {{ name }}! Твои задачи:</h2>
+<div class="row justify-content-center">
+    <div class="col-md-8">
 
-<form method="POST">
-    <input type="text" name="content" placeholder="Купить молоко..." required>
-    <button type="submit">Добавить</button>
-</form>
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <form method="POST" class="d-flex gap-2">
+                    <input type="text" name="content" class="form-control form-control-lg" placeholder="Что нужно сделать сегодня?" required>
+                    <button type="submit" class="btn btn-primary btn-lg">Добавить</button>
+                </form>
+            </div>
+        </div>
 
-<ul>
-    {% for task in tasks %}
-    <li class="{% if task.completed %}done{% endif %}" id="task-{{ task.id }}">
-        <span onclick="toggleTask({{ task.id }})">{{ task.content }}</span>
-    </li>
-    {% endfor %}
-</ul>
-<p><small>Кликни на текст задачи, чтобы завершить её.</small></p>
+        <div class="list-group shadow-sm">
+            {% if not tasks %}
+                <div class="list-group-item text-center text-muted py-5">
+                    <h4>📭 Задач пока нет</h4>
+                    <p>Самое время что-то запланировать!</p>
+                </div>
+            {% endif %}
+
+            {% for task in tasks %}
+            <div class="list-group-item d-flex justify-content-between align-items-center task-item {% if task.completed %}bg-light text-decoration-line-through text-muted{% endif %}" id="task-{{ task.id }}">
+                <div class="d-flex align-items-center gap-3 w-100" style="cursor: pointer;" onclick="toggleTask({{ task.id }})">
+                    <input type="checkbox" class="form-check-input mt-0" {% if task.completed %}checked{% endif %} disabled>
+                    <span class="fs-5">{{ task.content }}</span>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <small class="text-secondary text-nowrap align-self-center">{{ task.date_created.strftime('%H:%M') }}</small>
+                    <a href="/delete/{{ task.id }}" class="btn btn-outline-danger btn-sm border-0">✕</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+</div>
 {% endblock %}
