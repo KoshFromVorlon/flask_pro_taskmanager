@@ -5,9 +5,9 @@
     <div class="col-md-9">
 
         <div class="card shadow-sm mb-4 border-0">
-            <div class="card-body p-4 bg-white rounded">
-                <form method="POST" class="row g-2 align-items-center">
-                    <div class="col-md-5">
+            <div class="card-body p-4 rounded">
+                <form method="POST" enctype="multipart/form-data" class="row g-2 align-items-center">
+                    <div class="col-md-4">
                         <input type="text" name="content" class="form-control form-control-lg" placeholder="{{ t.placeholder_task }}" required>
                     </div>
                     <div class="col-md-3">
@@ -20,14 +20,21 @@
                             <option value="{{ t.cat_other }}">📁 {{ t.cat_other }}</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
+
+                    <div class="col-md-4 d-flex gap-2">
                         <input type="text"
                                name="deadline"
                                class="form-control form-control-lg text-secondary"
                                placeholder="{{ t.placeholder_deadline }}"
                                onfocus="(this.type='datetime-local')"
                                onblur="if(!this.value)this.type='text'">
+
+                        <label class="btn btn-outline-secondary btn-lg" title="{{ t.attach_label }}">
+                            <i class="bi bi-paperclip"></i>
+                            <input type="file" name="files" multiple hidden>
+                        </label>
                     </div>
+
                     <div class="col-md-1">
                         <button type="submit" class="btn btn-primary btn-lg w-100" title="{{ t.btn_add }}">
                             <i class="bi bi-plus-lg"></i>
@@ -38,7 +45,7 @@
         </div>
 
         <div class="card shadow-sm mb-3 border-0">
-            <div class="card-body py-2 px-3 bg-light rounded d-flex flex-wrap align-items-center gap-3">
+            <div class="card-body py-2 px-3 bg-body-tertiary rounded d-flex flex-wrap align-items-center gap-3">
                 <div class="flex-grow-1 position-relative">
                     <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
                     <input type="text" id="searchInput" class="form-control ps-5" placeholder="{{ t.placeholder_search }}">
@@ -72,7 +79,7 @@
             {% endif %}
 
             {% for task in tasks %}
-            <div class="list-group-item p-3 task-item {% if task.completed %}bg-light opacity-75{% endif %}"
+            <div class="list-group-item p-3 task-item {% if task.completed %}list-group-item-secondary opacity-75{% endif %}"
                  id="task-{{ task.id }}"
                  data-category="{{ task.category }}"
                  data-completed="{{ 'true' if task.completed else 'false' }}"
@@ -88,20 +95,22 @@
                                     {{ task.content }}
                                 </span>
 
-                                {% if task.deadline and not task.completed %}
-                                    {% if task.deadline < now %}
-                                        <span class="badge bg-danger animate-pulse">
-                                            <i class="bi bi-fire"></i> {{ t.overdue_prefix }}: {{ task.deadline.strftime('%d.%m %H:%M') }}
-                                        </span>
-                                    {% else %}
-                                        <span class="badge bg-info text-dark">
-                                            <i class="bi bi-hourglass-split"></i> {{ t.deadline_prefix }} {{ task.deadline.strftime('%d.%m %H:%M') }}
-                                        </span>
+                                <div class="d-flex gap-2">
+                                    {% if task.deadline and not task.completed %}
+                                        {% if task.deadline < now %}
+                                            <span class="badge bg-danger animate-pulse">
+                                                <i class="bi bi-fire"></i> {{ t.overdue_prefix }}: {{ task.deadline.strftime('%d.%m %H:%M') }}
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-info text-dark">
+                                                <i class="bi bi-hourglass-split"></i> {{ t.deadline_prefix }} {{ task.deadline.strftime('%d.%m %H:%M') }}
+                                            </span>
+                                        {% endif %}
                                     {% endif %}
-                                {% endif %}
+                                </div>
                             </div>
 
-                            <div class="mt-1 d-flex align-items-center gap-2">
+                            <div class="mt-1 d-flex align-items-center gap-2 flex-wrap">
                                 <span class="badge rounded-pill bg-secondary text-white border">
                                     {{ task.category }}
                                 </span>
@@ -109,6 +118,17 @@
                                 <small class="text-muted" style="font-size: 0.8em;">
                                     <i class="bi bi-clock"></i> {{ t.created_prefix }} {{ task.date_created.strftime('%d.%m') }}
                                 </small>
+                                {% endif %}
+
+                                {% if task.attachments %}
+                                    <div class="d-flex gap-1 ms-2">
+                                        {% for file in task.attachments %}
+                                            <a href="{{ url_for('static', filename='uploads/' + file.filename) }}" target="_blank" class="badge bg-body-secondary text-primary border text-decoration-none" title="{{ file.original_name }}">
+                                                <i class="bi bi-paperclip"></i>
+                                                {{ file.original_name[:10] }}{% if file.original_name|length > 10 %}...{% endif %}
+                                            </a>
+                                        {% endfor %}
+                                    </div>
                                 {% endif %}
                             </div>
                         </div>
@@ -146,7 +166,7 @@
                     {% endfor %}
 
                     <form action="/task/{{ task.id }}/add_subtask" method="POST" class="mt-2 d-flex gap-2">
-                        <input type="text" name="subtask_content" class="form-control form-control-sm border-0 bg-light" placeholder="+ Шаг (например: Купить краску)" required>
+                        <input type="text" name="subtask_content" class="form-control form-control-sm border-0 bg-body-tertiary" placeholder="+ Шаг" required>
                         <button type="submit" class="btn btn-sm btn-outline-secondary border-0"><i class="bi bi-arrow-return-left"></i></button>
                     </form>
                 </div>
