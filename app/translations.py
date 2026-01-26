@@ -55,11 +55,9 @@ translations = {
         'flash_avatar_uploaded': 'Аватар обновлен!',
         'flash_invalid_file': 'Неверный формат файла (разрешены jpg, png).',
 
-        # --- ТЕМЫ (НОВОЕ) ---
+        # --- ТЕМЫ ---
         'theme_light': 'Светлая',
         'theme_dark': 'Темная',
-        'theme_gray': 'Серый асфальт',
-        'theme_casino': 'Зеленое сукно',
     },
     'en': {
         'title': 'TaskMaster Pro',
@@ -117,11 +115,9 @@ translations = {
         'flash_avatar_uploaded': 'Avatar updated!',
         'flash_invalid_file': 'Invalid file format (jpg, png allowed).',
 
-        # --- THEMES (NEW) ---
+        # --- THEMES ---
         'theme_light': 'Light',
         'theme_dark': 'Dark',
-        'theme_gray': 'Asphalt Gray',
-        'theme_casino': 'Casino Green',
     },
     'ua': {
         'title': 'TaskMaster Pro',
@@ -179,10 +175,8 @@ translations = {
         'flash_avatar_uploaded': 'Аватар оновлено!',
         'flash_invalid_file': 'Невірний формат файлу (дозволено jpg, png).',
 
-        # --- ТЕМИ (НОВЕ) ---
+        # --- ТЕМИ ---
         'theme_light': 'Світла',
         'theme_dark': 'Темна',
-        'theme_gray': 'Сірий асфальт',
-        'theme_casino': 'Зелене сукно',
     }
 }
