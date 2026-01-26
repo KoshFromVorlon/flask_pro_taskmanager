@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ t.title }}</title>
-
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@6.6.6/css/flag-icons.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body class="bg-light">
@@ -16,30 +17,44 @@
             <a class="navbar-brand fw-bold" href="/">
                 <i class="bi bi-check2-square text-success"></i> {{ t.title }}
             </a>
-
+            
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
-
+                    
                     <li class="nav-item dropdown me-3">
                         <a class="nav-link dropdown-toggle text-white d-flex align-items-center gap-2" href="#" id="langDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-globe"></i>
-
-                            <span>
-                                {% if lang == 'ua' %}🇺🇦
-                                {% elif lang == 'en' %}🇬🇧
-                                {% elif lang == 'ru' %}🇷🇺
-                                {% endif %}
-                                {{ lang|upper }}
-                            </span>
+                            <i class="bi bi-globe"></i> 
+                            
+                            {% if lang == 'ua' %}
+                                <span class="fi fi-ua"></span>
+                            {% elif lang == 'en' %}
+                                <span class="fi fi-gb"></span>
+                            {% elif lang == 'ru' %}
+                                <span class="fi fi-ru"></span>
+                            {% endif %}
+                            
+                            <span>{{ lang|upper }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end shadow" style="min-width: auto;">
-                            <li><a class="dropdown-item {% if lang == 'en' %}active{% endif %}" href="/set-language/en">🇬🇧 EN</a></li>
-                            <li><a class="dropdown-item {% if lang == 'ru' %}active{% endif %}" href="/set-language/ru">🇷🇺 RU</a></li>
-                            <li><a class="dropdown-item {% if lang == 'ua' %}active{% endif %}" href="/set-language/ua">🇺🇦 UA</a></li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2 {% if lang == 'en' %}active{% endif %}" href="/set-language/en">
+                                    <span class="fi fi-gb"></span> EN
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2 {% if lang == 'ru' %}active{% endif %}" href="/set-language/ru">
+                                    <span class="fi fi-ru"></span> RU
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2 {% if lang == 'ua' %}active{% endif %}" href="/set-language/ua">
+                                    <span class="fi fi-ua"></span> UA
+                                </a>
+                            </li>
                         </ul>
                     </li>
 
@@ -51,10 +66,10 @@
                             </a>
                         </li>
                         {% endif %}
-
+                        
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                                <i class="bi bi-person-circle fs-5"></i>
+                                <i class="bi bi-person-circle fs-5"></i> 
                                 <span>{{ current_user.username }}</span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end shadow">
@@ -74,13 +89,13 @@
 
                     {% else %}
                         <li class="nav-item">
-                            <a class="{% if request.endpoint == 'main.login' %}btn btn-primary btn-sm px-3 shadow-sm{% else %}nav-link{% endif %}"
+                            <a class="{% if request.endpoint == 'main.login' %}btn btn-primary btn-sm px-3 shadow-sm{% else %}nav-link{% endif %}" 
                                href="/login">
                                {{ t.login_btn }}
                             </a>
                         </li>
                         <li class="nav-item ms-2">
-                            <a class="{% if request.endpoint == 'main.register' %}btn btn-primary btn-sm px-3 shadow-sm{% else %}nav-link{% endif %}"
+                            <a class="{% if request.endpoint == 'main.register' %}btn btn-primary btn-sm px-3 shadow-sm{% else %}nav-link{% endif %}" 
                                href="/register">
                                {{ t.register_btn }}
                             </a>
@@ -107,7 +122,7 @@
                 {% endfor %}
             {% endif %}
         {% endwith %}
-
+        
         {% block content %}{% endblock %}
     </div>
 
