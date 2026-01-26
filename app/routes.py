@@ -1,11 +1,28 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, make_response
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from . import db
 from .models import User, Task
+from .translations import translations  # Импорт для проверки ключей
 
 main = Blueprint('main', __name__)
+
+
+# --- ПЕРЕКЛЮЧЕНИЕ ЯЗЫКА ---
+@main.route('/set-language/<lang_code>')
+def set_language(lang_code):
+    # Проверяем, поддерживается ли язык
+    if lang_code not in translations:
+        lang_code = 'ru'
+
+    # Мы должны вернуть пользователя туда, откуда он пришел
+    referrer = request.referrer or url_for('main.index')
+
+    resp = make_response(redirect(referrer))
+    # Сохраняем выбор в куки на 30 дней
+    resp.set_cookie('lang', lang_code, max_age=30 * 24 * 60 * 60)
+    return resp
 
 
 # --- АВТОРИЗАЦИЯ ---
@@ -20,12 +37,11 @@ def register():
             return redirect(url_for('main.register'))
 
         user = User(username=username, password=generate_password_hash(password, method='scrypt'))
-        if User.query.count() == 0: user.is_admin = True
 
         db.session.add(user)
         db.session.commit()
         login_user(user)
-        flash('Регистрация успешна! Добро пожаловать.', 'success')
+        flash('Регистрация успешна!', 'success')
         return redirect(url_for('main.index'))
 
     return render_template('register.html')
@@ -42,7 +58,7 @@ def login():
             login_user(user)
             flash('Вы успешно вошли!', 'success')
             return redirect(url_for('main.index'))
-        flash('Ошибка входа. Проверьте данные.', 'error')
+        flash('Ошибка входа.', 'error')
     return render_template('login.html')
 
 
@@ -50,7 +66,6 @@ def login():
 @login_required
 def logout():
     logout_user()
-    flash('Вы вышли из системы.', 'success')
     return redirect(url_for('main.login'))
 
 
@@ -62,12 +77,12 @@ def change_password():
         new_password = request.form.get('new_password')
 
         if not check_password_hash(current_user.password, old_password):
-            flash('Старый пароль введен неверно.', 'error')
+            flash('Старый пароль неверен.', 'error')
             return redirect(url_for('main.change_password'))
 
         current_user.password = generate_password_hash(new_password, method='scrypt')
         db.session.commit()
-        flash('Пароль успешно изменен!', 'success')
+        flash('Пароль изменен!', 'success')
         return redirect(url_for('main.index'))
 
     return render_template('change_password.html')
@@ -79,19 +94,24 @@ def change_password():
 def index():
     if request.method == 'POST':
         content = request.form.get('content')
-        category = request.form.get('category')
-        deadline_str = request.form.get('deadline')  # Получаем строку "2023-10-30T14:30"
+        category_key = request.form.get('category')  # Получаем ключ (cat_work)
+        deadline_str = request.form.get('deadline')
+
+        # Получаем текущий язык из куки для сохранения категории в БД
+        # В БД мы будем сохранять именно перевод, чтобы потом не путаться,
+        # или можно сохранять ключи. Для простоты сохраним ТЕКСТ категории на текущем языке.
+        # Но лучше сохранять ключи, но для совместимости оставим текст.
+        # Чтобы не усложнять: берем текст прямо из формы (value в HTML)
 
         if content:
-            # Превращаем строку в объект даты (если она была заполнена)
             deadline_obj = None
             if deadline_str:
                 try:
                     deadline_obj = datetime.strptime(deadline_str, '%Y-%m-%dT%H:%M')
                 except ValueError:
-                    pass  # Если пришла ерунда, просто игнорируем
+                    pass
 
-            new_task = Task(content=content, category=category, deadline=deadline_obj, author=current_user)
+            new_task = Task(content=content, category=category_key, deadline=deadline_obj, author=current_user)
             db.session.add(new_task)
             db.session.commit()
             flash('Задача добавлена!', 'success')
@@ -99,7 +119,6 @@ def index():
 
     tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.completed, Task.deadline,
                                                                    Task.date_created).all()
-    # Передаем "now" в шаблон, чтобы сравнивать даты
     return render_template('index.html', tasks=tasks, now=datetime.now())
 
 

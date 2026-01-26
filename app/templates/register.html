@@ -4,23 +4,23 @@
     <div class="col-md-4">
         <div class="card shadow">
             <div class="card-body p-4">
-                <h3 class="text-center mb-4">Регистрация в системе</h3>
+                <h3 class="text-center mb-4">{{ t.register_header }}</h3>
                 <form method="POST">
                     <div class="mb-3">
-                        <label class="form-label">Регистрация</label>
+                        <label class="form-label">{{ t.register_label }}</label>
                         <input type="text" name="username" class="form-control" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Пароль</label>
+                        <label class="form-label">{{ t.password_label }}</label>
                         <input type="password" name="password" class="form-control" required>
                     </div>
                     <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">Войти</button>
+                        <button type="submit" class="btn btn-primary">{{ t.register_link }}</button>
                     </div>
                 </form>
             </div>
             <div class="card-footer text-center bg-white border-0 pb-3">
-                <small>Нет аккаунта? <a href="/register">Зарегистрироваться</a></small>
+                <small>{{ t.have_account }} <a href="/login">{{ t.login_link }}</a></small>
             </div>
         </div>
     </div>

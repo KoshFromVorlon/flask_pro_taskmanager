@@ -1,31 +1,27 @@
-from flask import Flask
+from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from werkzeug.security import generate_password_hash
 from config import Config
+from .translations import translations  # Импортируем наш словарь
 
 db = SQLAlchemy()
 login_manager = LoginManager()
 
 
 # --- НАСТРОЙКИ АДМИНКИ ---
-
-# 1. Базовая защита (чтобы пускало только админа)
 class SecureModelView(ModelView):
     def is_accessible(self):
         return current_user.is_authenticated and current_user.is_admin
 
 
-# 2. Настройка для таблицы ПОЛЬЗОВАТЕЛЕЙ
 class UserView(SecureModelView):
-    column_list = ('username', 'is_admin', 'tasks')  # Что показывать в списке
-    form_columns = ('username', 'is_admin')  # Что можно редактировать
-    # Пароль скрываем, чтобы случайно не сломать хеш
+    column_list = ('username', 'is_admin', 'tasks')
+    form_columns = ('username', 'is_admin')
 
 
-# 3. Настройка для таблицы ЗАДАЧ
 class TaskView(SecureModelView):
     column_list = ('content', 'category', 'completed', 'author', 'date_created')
     form_columns = ('content', 'category', 'completed', 'author')
@@ -41,14 +37,24 @@ def create_app():
 
     from .models import User, Task
 
-    # Инициализация админ-панели с новыми настройками
     admin = Admin(app, name='TaskManager Admin')
-    # Добавляем разные настройки для разных таблиц
     admin.add_view(UserView(User, db.session, name='Пользователи'))
     admin.add_view(TaskView(Task, db.session, name='Задачи'))
 
     from .routes import main
     app.register_blueprint(main)
+
+    # --- МАГИЯ ЯЗЫКОВ ---
+    # Эта функция запускается перед отрисовкой любого шаблона
+    @app.context_processor
+    def inject_language():
+        # Получаем язык из куки, по умолчанию 'ru'
+        lang_code = request.cookies.get('lang', 'ru')
+        # Если в куке мусор, сбрасываем на ru
+        if lang_code not in translations:
+            lang_code = 'ru'
+        # Возвращаем словарь 't', который будет доступен в HTML как {{ t.ключ }}
+        return dict(lang=lang_code, t=translations[lang_code])
 
     with app.app_context():
         db.create_all()

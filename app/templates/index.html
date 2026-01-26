@@ -8,27 +8,31 @@
             <div class="card-body p-4 bg-white rounded">
                 <form method="POST" class="row g-2 align-items-center">
                     <div class="col-md-5">
-                        <input type="text" name="content" class="form-control form-control-lg" placeholder="Новая задача..." required>
+                        <input type="text" name="content" class="form-control form-control-lg" placeholder="{{ t.placeholder_task }}" required>
                     </div>
+
                     <div class="col-md-3">
                         <select name="category" class="form-select form-select-lg">
-                            <option value="Работа">💼 Работа</option>
-                            <option value="Дом">🏠 Дом</option>
-                            <option value="Учеба">🎓 Учеба</option>
-                            <option value="Покупки">🛒 Покупки</option>
-                            <option value="Важное">🔥 Важное</option>
+                            <option value="{{ t.cat_work }}">💼 {{ t.cat_work }}</option>
+                            <option value="{{ t.cat_home }}">🏠 {{ t.cat_home }}</option>
+                            <option value="{{ t.cat_study }}">🎓 {{ t.cat_study }}</option>
+                            <option value="{{ t.cat_shopping }}">🛒 {{ t.cat_shopping }}</option>
+                            <option value="{{ t.cat_important }}">🔥 {{ t.cat_important }}</option>
+                            <option value="{{ t.cat_other }}">📁 {{ t.cat_other }}</option>
                         </select>
                     </div>
+
                     <div class="col-md-3">
                         <input type="text"
                                name="deadline"
                                class="form-control form-control-lg text-secondary"
-                               placeholder="Срок выполнения"
+                               placeholder="{{ t.placeholder_deadline }}"
                                onfocus="(this.type='datetime-local')"
                                onblur="if(!this.value)this.type='text'">
                     </div>
+
                     <div class="col-md-1">
-                        <button type="submit" class="btn btn-primary btn-lg w-100" title="Добавить">
+                        <button type="submit" class="btn btn-primary btn-lg w-100" title="{{ t.btn_add }}">
                             <i class="bi bi-plus-lg"></i>
                         </button>
                     </div>
@@ -38,27 +42,27 @@
 
         <div class="card shadow-sm mb-3 border-0">
             <div class="card-body py-2 px-3 bg-light rounded d-flex flex-wrap align-items-center gap-3">
-
                 <div class="flex-grow-1 position-relative">
                     <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
-                    <input type="text" id="searchInput" class="form-control ps-5" placeholder="Поиск по задачам...">
+                    <input type="text" id="searchInput" class="form-control ps-5" placeholder="{{ t.placeholder_search }}">
                 </div>
 
                 <div class="d-flex align-items-center">
                     <i class="bi bi-funnel text-muted me-2"></i>
                     <select id="categoryFilter" class="form-select form-select-sm" style="width: 150px;">
-                        <option value="all">Все категории</option>
-                        <option value="Работа">💼 Работа</option>
-                        <option value="Дом">🏠 Дом</option>
-                        <option value="Учеба">🎓 Учеба</option>
-                        <option value="Покупки">🛒 Покупки</option>
-                        <option value="Важное">🔥 Важное</option>
+                        <option value="all">{{ t.cat_all }}</option>
+                        <option value="{{ t.cat_work }}">💼 {{ t.cat_work }}</option>
+                        <option value="{{ t.cat_home }}">🏠 {{ t.cat_home }}</option>
+                        <option value="{{ t.cat_study }}">🎓 {{ t.cat_study }}</option>
+                        <option value="{{ t.cat_shopping }}">🛒 {{ t.cat_shopping }}</option>
+                        <option value="{{ t.cat_important }}">🔥 {{ t.cat_important }}</option>
+                        <option value="{{ t.cat_other }}">📁 {{ t.cat_other }}</option>
                     </select>
                 </div>
 
                 <div class="form-check form-switch m-0">
                     <input class="form-check-input" type="checkbox" id="hideCompletedFilter">
-                    <label class="form-check-label text-nowrap" for="hideCompletedFilter">Скрыть готовые</label>
+                    <label class="form-check-label text-nowrap" for="hideCompletedFilter">{{ t.filter_hide }}</label>
                 </div>
             </div>
         </div>
@@ -68,7 +72,7 @@
             {% if not tasks %}
                 <div class="text-center py-5 text-muted">
                     <i class="bi bi-calendar-check display-1"></i>
-                    <p class="mt-3 fs-5">Планов нет. Наслаждайся свободой!</p>
+                    <p class="mt-3 fs-5">{{ t.empty_state }}</p>
                 </div>
             {% endif %}
 
@@ -92,29 +96,24 @@
                             {% if task.deadline and not task.completed %}
                                 {% if task.deadline < now %}
                                     <span class="badge bg-danger animate-pulse">
-                                        <i class="bi bi-fire"></i> Просрочено: {{ task.deadline.strftime('%d.%m %H:%M') }}
+                                        <i class="bi bi-fire"></i> {{ t.overdue_prefix }}: {{ task.deadline.strftime('%d.%m %H:%M') }}
                                     </span>
                                 {% else %}
                                     <span class="badge bg-info text-dark">
-                                        <i class="bi bi-hourglass-split"></i> до {{ task.deadline.strftime('%d.%m %H:%M') }}
+                                        <i class="bi bi-hourglass-split"></i> {{ t.deadline_prefix }} {{ task.deadline.strftime('%d.%m %H:%M') }}
                                     </span>
                                 {% endif %}
                             {% endif %}
                         </div>
 
                         <div class="mt-1 d-flex align-items-center gap-2">
-                            <span class="badge rounded-pill
-                                {% if task.category == 'Работа' %}bg-primary
-                                {% elif task.category == 'Важное' %}bg-danger
-                                {% elif task.category == 'Дом' %}bg-success
-                                {% elif task.category == 'Покупки' %}bg-warning text-dark
-                                {% else %}bg-secondary{% endif %}">
+                            <span class="badge rounded-pill bg-secondary text-white border">
                                 {{ task.category }}
                             </span>
 
                             {% if not task.deadline %}
                             <small class="text-muted" style="font-size: 0.8em;">
-                                <i class="bi bi-clock"></i> созд. {{ task.date_created.strftime('%d.%m') }}
+                                <i class="bi bi-clock"></i> {{ t.created_prefix }} {{ task.date_created.strftime('%d.%m') }}
                             </small>
                             {% endif %}
                         </div>
