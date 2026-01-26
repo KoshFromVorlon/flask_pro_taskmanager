@@ -1,56 +1,93 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- 1. АВТОМАТИЧЕСКОЕ СКРЫТИЕ СООБЩЕНИЙ ---
-
-    // Находим все уведомления, которые можно закрыть
+    // 1. Авто-скрытие уведомлений
     const alerts = document.querySelectorAll('.alert-dismissible');
-
     alerts.forEach(alert => {
-        // Запускаем таймер на 4000 мс (4 секунды)
         setTimeout(() => {
-            // Проверяем, существует ли элемент (вдруг пользователь закрыл его раньше)
             if (alert) {
-                // Используем Bootstrap API для красивого исчезновения
                 const bsAlert = new bootstrap.Alert(alert);
                 bsAlert.close();
             }
         }, 4000);
     });
+
+    // 2. Логика ПОИСКА и ФИЛЬТРОВ
+    const searchInput = document.getElementById('searchInput');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const hideCompletedFilter = document.getElementById('hideCompletedFilter');
+    const taskList = document.getElementById('taskList');
+    const tasks = taskList ? taskList.querySelectorAll('.task-item') : [];
+
+    function filterTasks() {
+        const searchText = searchInput.value.toLowerCase();
+        const selectedCategory = categoryFilter.value;
+        const hideCompleted = hideCompletedFilter.checked;
+
+        tasks.forEach(task => {
+            // Получаем данные из атрибутов data-*
+            const content = task.getAttribute('data-content');
+            const category = task.getAttribute('data-category');
+            const isCompleted = task.getAttribute('data-completed') === 'true';
+
+            // Проверяем 3 условия
+            const matchesSearch = content.includes(searchText);
+            const matchesCategory = selectedCategory === 'all' || category === selectedCategory;
+            const matchesStatus = !hideCompleted || !isCompleted;
+
+            // Если все совпадает — показываем, иначе скрываем
+            if (matchesSearch && matchesCategory && matchesStatus) {
+                task.classList.remove('d-none');
+                task.classList.add('d-flex'); // Возвращаем flex, чтобы верстка не ехала
+            } else {
+                task.classList.add('d-none');
+                task.classList.remove('d-flex');
+            }
+        });
+    }
+
+    // Вешаем слушатели событий (если элементы есть на странице)
+    if (searchInput) {
+        searchInput.addEventListener('input', filterTasks);
+        categoryFilter.addEventListener('change', filterTasks);
+        hideCompletedFilter.addEventListener('change', filterTasks);
+    }
 });
 
-// --- 2. ЛОГИКА ЗАДАЧ (AJAX) ---
-
+// --- 3. AJAX ОБНОВЛЕНИЕ ЗАДАЧИ ---
 async function toggleTask(id) {
-    // Находим элементы строки задачи
     const row = document.getElementById(`task-${id}`);
     const icon = row.querySelector('.task-icon');
     const text = row.querySelector('.task-text');
 
     try {
-        // Отправляем запрос на сервер
         const response = await fetch(`/toggle/${id}`, { method: 'POST' });
         const data = await response.json();
 
         if (data.success) {
-            // Обновляем вид в зависимости от нового статуса
+            // Обновляем визуальный статус
             if (data.completed) {
-                // ЗАДАЧА ВЫПОЛНЕНА
                 row.classList.add('bg-light', 'opacity-75');
                 text.classList.add('text-decoration-line-through', 'text-muted');
-
-                // Меняем кружок на зеленую галочку
                 icon.classList.remove('bi-circle', 'text-secondary');
                 icon.classList.add('bi-check-circle-fill', 'text-success');
             } else {
-                // ЗАДАЧА АКТИВНА (ВЕРНУЛИ)
                 row.classList.remove('bg-light', 'opacity-75');
                 text.classList.remove('text-decoration-line-through', 'text-muted');
-
-                // Меняем галочку на серый кружок
                 icon.classList.remove('bi-check-circle-fill', 'text-success');
                 icon.classList.add('bi-circle', 'text-secondary');
             }
+
+            // ВАЖНО: Обновляем атрибут для фильтрации
+            row.setAttribute('data-completed', data.completed);
+
+            // Запускаем фильтрацию заново (вдруг включен режим "Скрыть готовые")
+            // Находим чекбокс фильтра и вызываем событие change вручную
+            const hideCompletedFilter = document.getElementById('hideCompletedFilter');
+            if (hideCompletedFilter && hideCompletedFilter.checked) {
+                row.classList.add('d-none');
+                row.classList.remove('d-flex');
+            }
         }
     } catch (error) {
-        console.error('Ошибка при обновлении задачи:', error);
+        console.error('Ошибка:', error);
     }
 }
