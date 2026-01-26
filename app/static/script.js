@@ -53,7 +53,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// --- ТЕМЫ ---
 function setTheme(theme) {
     document.documentElement.setAttribute('data-bs-theme', theme);
     localStorage.setItem('theme', theme);
@@ -64,7 +63,6 @@ function updateThemeIcon(theme) {
     const themeIconDisplay = document.getElementById('theme-icon-active');
     if (!themeIconDisplay) return;
 
-    // Снимаем активность со всех кнопок
     document.querySelectorAll('[data-bs-theme-value]').forEach(el => {
         el.classList.remove('active');
         if (el.getAttribute('data-bs-theme-value') === theme) {
@@ -72,7 +70,6 @@ function updateThemeIcon(theme) {
         }
     });
 
-    // Меняем иконку (Солнце или Луна)
     if (theme === 'dark') {
         themeIconDisplay.className = 'bi bi-moon-stars-fill';
     } else {
@@ -80,7 +77,6 @@ function updateThemeIcon(theme) {
     }
 }
 
-// --- ЗАДАЧИ ---
 async function toggleTask(id) {
     const row = document.getElementById(`task-${id}`);
     const icon = row.querySelector('.task-icon');
@@ -92,12 +88,13 @@ async function toggleTask(id) {
 
         if (data.success) {
             if (data.completed) {
-                row.classList.add('bg-light', 'opacity-75');
+                // ИСПРАВЛЕНО: вместо bg-light используем адаптивный класс
+                row.classList.add('list-group-item-secondary', 'opacity-75');
                 text.classList.add('text-decoration-line-through', 'text-muted');
                 icon.classList.remove('bi-circle', 'text-secondary');
                 icon.classList.add('bi-check-circle-fill', 'text-success');
             } else {
-                row.classList.remove('bg-light', 'opacity-75');
+                row.classList.remove('list-group-item-secondary', 'opacity-75');
                 text.classList.remove('text-decoration-line-through', 'text-muted');
                 icon.classList.remove('bi-check-circle-fill', 'text-success');
                 icon.classList.add('bi-circle', 'text-secondary');
