@@ -3,24 +3,28 @@ from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from . import db
-from .models import User, Task
-from .translations import translations  # Импорт для проверки ключей
+from .models import User, Task, Subtask
+from .translations import translations
 
 main = Blueprint('main', __name__)
 
 
-# --- ПЕРЕКЛЮЧЕНИЕ ЯЗЫКА ---
+# --- ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ ПЕРЕВОДА В PYTHON ---
+def get_text(key):
+    """Берет язык из куки и возвращает текст из словаря"""
+    lang = request.cookies.get('lang', 'ru')
+    if lang not in translations:
+        lang = 'ru'
+    return translations[lang].get(key, key)  # Если ключа нет, вернет сам ключ
+
+
+# --- ЯЗЫКИ ---
 @main.route('/set-language/<lang_code>')
 def set_language(lang_code):
-    # Проверяем, поддерживается ли язык
     if lang_code not in translations:
         lang_code = 'ru'
-
-    # Мы должны вернуть пользователя туда, откуда он пришел
     referrer = request.referrer or url_for('main.index')
-
     resp = make_response(redirect(referrer))
-    # Сохраняем выбор в куки на 30 дней
     resp.set_cookie('lang', lang_code, max_age=30 * 24 * 60 * 60)
     return resp
 
@@ -33,17 +37,17 @@ def register():
         password = request.form.get('password')
 
         if User.query.filter_by(username=username).first():
-            flash('Такой пользователь уже существует!', 'error')
+            # ИСПОЛЬЗУЕМ ПЕРЕВОД
+            flash(get_text('flash_user_exists'), 'error')
             return redirect(url_for('main.register'))
 
         user = User(username=username, password=generate_password_hash(password, method='scrypt'))
-
         db.session.add(user)
         db.session.commit()
         login_user(user)
-        flash('Регистрация успешна!', 'success')
+        # ИСПОЛЬЗУЕМ ПЕРЕВОД
+        flash(get_text('flash_register_success'), 'success')
         return redirect(url_for('main.index'))
-
     return render_template('register.html')
 
 
@@ -56,9 +60,12 @@ def login():
 
         if user and check_password_hash(user.password, password):
             login_user(user)
-            flash('Вы успешно вошли!', 'success')
+            # ИСПОЛЬЗУЕМ ПЕРЕВОД
+            flash(get_text('flash_login_success'), 'success')
             return redirect(url_for('main.index'))
-        flash('Ошибка входа.', 'error')
+
+        # ИСПОЛЬЗУЕМ ПЕРЕВОД
+        flash(get_text('flash_login_error'), 'error')
     return render_template('login.html')
 
 
@@ -66,6 +73,7 @@ def login():
 @login_required
 def logout():
     logout_user()
+    # ИСПОЛЬЗУЕМ ПЕРЕВОД (Можно показывать на странице входа)
     return redirect(url_for('main.login'))
 
 
@@ -77,14 +85,13 @@ def change_password():
         new_password = request.form.get('new_password')
 
         if not check_password_hash(current_user.password, old_password):
-            flash('Старый пароль неверен.', 'error')
+            flash(get_text('flash_pass_wrong'), 'error')
             return redirect(url_for('main.change_password'))
 
         current_user.password = generate_password_hash(new_password, method='scrypt')
         db.session.commit()
-        flash('Пароль изменен!', 'success')
+        flash(get_text('flash_pass_changed'), 'success')
         return redirect(url_for('main.index'))
-
     return render_template('change_password.html')
 
 
@@ -94,14 +101,8 @@ def change_password():
 def index():
     if request.method == 'POST':
         content = request.form.get('content')
-        category_key = request.form.get('category')  # Получаем ключ (cat_work)
+        category_key = request.form.get('category')
         deadline_str = request.form.get('deadline')
-
-        # Получаем текущий язык из куки для сохранения категории в БД
-        # В БД мы будем сохранять именно перевод, чтобы потом не путаться,
-        # или можно сохранять ключи. Для простоты сохраним ТЕКСТ категории на текущем языке.
-        # Но лучше сохранять ключи, но для совместимости оставим текст.
-        # Чтобы не усложнять: берем текст прямо из формы (value в HTML)
 
         if content:
             deadline_obj = None
@@ -114,7 +115,7 @@ def index():
             new_task = Task(content=content, category=category_key, deadline=deadline_obj, author=current_user)
             db.session.add(new_task)
             db.session.commit()
-            flash('Задача добавлена!', 'success')
+            flash(get_text('flash_task_added'), 'success')
             return redirect(url_for('main.index'))
 
     tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.completed, Task.deadline,
@@ -129,7 +130,7 @@ def delete_task(id):
     if task.user_id == current_user.id:
         db.session.delete(task)
         db.session.commit()
-        flash('Задача удалена.', 'success')
+        flash(get_text('flash_task_deleted'), 'success')
     return redirect(url_for('main.index'))
 
 
@@ -142,3 +143,40 @@ def toggle(id):
         db.session.commit()
         return jsonify({'success': True, 'completed': task.completed})
     return jsonify({'success': False})
+
+
+# --- ПОДЗАДАЧИ ---
+@main.route('/task/<int:task_id>/add_subtask', methods=['POST'])
+@login_required
+def add_subtask(task_id):
+    task = Task.query.get_or_404(task_id)
+    content = request.form.get('subtask_content')
+
+    if task.user_id == current_user.id and content:
+        subtask = Subtask(content=content, parent_task=task)
+        db.session.add(subtask)
+        db.session.commit()
+    return redirect(url_for('main.index'))
+
+
+@main.route('/toggle_subtask/<int:subtask_id>', methods=['POST'])
+@login_required
+def toggle_subtask(subtask_id):
+    subtask = Subtask.query.get_or_404(subtask_id)
+    if subtask.parent_task.user_id == current_user.id:
+        subtask.completed = not subtask.completed
+        db.session.commit()
+        progress = subtask.parent_task.get_progress()
+        return jsonify({'success': True, 'completed': subtask.completed, 'progress': progress})
+
+    return jsonify({'success': False})
+
+
+@main.route('/delete_subtask/<int:subtask_id>')
+@login_required
+def delete_subtask(subtask_id):
+    subtask = Subtask.query.get_or_404(subtask_id)
+    if subtask.parent_task.user_id == current_user.id:
+        db.session.delete(subtask)
+        db.session.commit()
+    return redirect(url_for('main.index'))

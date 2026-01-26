@@ -23,28 +23,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const hideCompleted = hideCompletedFilter.checked;
 
         tasks.forEach(task => {
-            // Получаем данные из атрибутов data-*
             const content = task.getAttribute('data-content');
             const category = task.getAttribute('data-category');
             const isCompleted = task.getAttribute('data-completed') === 'true';
 
-            // Проверяем 3 условия
             const matchesSearch = content.includes(searchText);
             const matchesCategory = selectedCategory === 'all' || category === selectedCategory;
             const matchesStatus = !hideCompleted || !isCompleted;
 
-            // Если все совпадает — показываем, иначе скрываем
             if (matchesSearch && matchesCategory && matchesStatus) {
                 task.classList.remove('d-none');
-                task.classList.add('d-flex'); // Возвращаем flex, чтобы верстка не ехала
             } else {
                 task.classList.add('d-none');
-                task.classList.remove('d-flex');
             }
         });
     }
 
-    // Вешаем слушатели событий (если элементы есть на странице)
     if (searchInput) {
         searchInput.addEventListener('input', filterTasks);
         categoryFilter.addEventListener('change', filterTasks);
@@ -52,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// --- 3. AJAX ОБНОВЛЕНИЕ ЗАДАЧИ ---
+// --- 3. ГЛАВНЫЕ ЗАДАЧИ ---
 async function toggleTask(id) {
     const row = document.getElementById(`task-${id}`);
     const icon = row.querySelector('.task-icon');
@@ -63,7 +57,6 @@ async function toggleTask(id) {
         const data = await response.json();
 
         if (data.success) {
-            // Обновляем визуальный статус
             if (data.completed) {
                 row.classList.add('bg-light', 'opacity-75');
                 text.classList.add('text-decoration-line-through', 'text-muted');
@@ -76,18 +69,42 @@ async function toggleTask(id) {
                 icon.classList.add('bi-circle', 'text-secondary');
             }
 
-            // ВАЖНО: Обновляем атрибут для фильтрации
             row.setAttribute('data-completed', data.completed);
 
-            // Запускаем фильтрацию заново (вдруг включен режим "Скрыть готовые")
-            // Находим чекбокс фильтра и вызываем событие change вручную
             const hideCompletedFilter = document.getElementById('hideCompletedFilter');
             if (hideCompletedFilter && hideCompletedFilter.checked) {
                 row.classList.add('d-none');
-                row.classList.remove('d-flex');
             }
         }
     } catch (error) {
         console.error('Ошибка:', error);
+    }
+}
+
+// --- 4. НОВОЕ: ПОДЗАДАЧИ ---
+async function toggleSubtask(subtaskId, parentTaskId) {
+    const subtaskRow = document.getElementById(`subtask-${subtaskId}`);
+    const label = subtaskRow.querySelector('label');
+    const progressBar = document.getElementById(`progress-${parentTaskId}`);
+
+    try {
+        const response = await fetch(`/toggle_subtask/${subtaskId}`, { method: 'POST' });
+        const data = await response.json();
+
+        if (data.success) {
+            // Меняем стиль текста подзадачи
+            if (data.completed) {
+                label.classList.add('text-decoration-line-through', 'text-muted');
+            } else {
+                label.classList.remove('text-decoration-line-through', 'text-muted');
+            }
+
+            // Обновляем Прогресс-бар
+            if (progressBar) {
+                progressBar.style.width = data.progress + '%';
+            }
+        }
+    } catch (error) {
+        console.error('Ошибка подзадачи:', error);
     }
 }

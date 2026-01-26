@@ -1,5 +1,6 @@
 translations = {
     'ru': {
+        # --- UI ---
         'title': 'TaskMaster Pro',
         'login_btn': 'Вход',
         'register_btn': 'Регистрация',
@@ -28,11 +29,23 @@ translations = {
         'no_account': 'Нет аккаунта?',
         'register_link': 'Зарегистрироваться',
         'register_header': 'Регистрация в системе',
-        'register_label': 'Регистрация',
+        'register_label': 'Логин',
         'have_account': 'Есть аккаунт?',
         'login_link': 'Войти',
+
+        # --- СИСТЕМНЫЕ СООБЩЕНИЯ (НОВОЕ) ---
+        'flash_user_exists': 'Такой пользователь уже существует!',
+        'flash_register_success': 'Регистрация успешна! Добро пожаловать.',
+        'flash_login_success': 'Вы успешно вошли!',
+        'flash_login_error': 'Ошибка входа. Проверьте данные.',
+        'flash_logout': 'Вы вышли из системы.',
+        'flash_pass_wrong': 'Старый пароль введен неверно.',
+        'flash_pass_changed': 'Пароль успешно изменен!',
+        'flash_task_added': 'Задача добавлена!',
+        'flash_task_deleted': 'Задача удалена.',
     },
     'en': {
+        # --- UI ---
         'title': 'TaskMaster Pro',
         'login_btn': 'Login',
         'register_btn': 'Sign Up',
@@ -64,8 +77,20 @@ translations = {
         'register_label': 'Username',
         'have_account': 'Have an account?',
         'login_link': 'Login',
+
+        # --- SYSTEM MESSAGES (NEW) ---
+        'flash_user_exists': 'This user already exists!',
+        'flash_register_success': 'Registration successful! Welcome.',
+        'flash_login_success': 'Login successful!',
+        'flash_login_error': 'Login error. Check your credentials.',
+        'flash_logout': 'You have logged out.',
+        'flash_pass_wrong': 'Old password is incorrect.',
+        'flash_pass_changed': 'Password changed successfully!',
+        'flash_task_added': 'Task added!',
+        'flash_task_deleted': 'Task deleted.',
     },
     'ua': {
+        # --- UI ---
         'title': 'TaskMaster Pro',
         'login_btn': 'Вхід',
         'register_btn': 'Реєстрація',
@@ -97,5 +122,16 @@ translations = {
         'register_label': 'Логін',
         'have_account': 'Є акаунт?',
         'login_link': 'Увійти',
+
+        # --- СИСТЕМНІ ПОВІДОМЛЕННЯ (НОВЕ) ---
+        'flash_user_exists': 'Такий користувач вже існує!',
+        'flash_register_success': 'Реєстрація успішна! Ласкаво просимо.',
+        'flash_login_success': 'Ви успішно увійшли!',
+        'flash_login_error': 'Помилка входу. Перевірте дані.',
+        'flash_logout': 'Ви вийшли із системи.',
+        'flash_pass_wrong': 'Старий пароль введено невірно.',
+        'flash_pass_changed': 'Пароль успішно змінено!',
+        'flash_task_added': 'Завдання додано!',
+        'flash_task_deleted': 'Завдання видалено.',
     }
 }

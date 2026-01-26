@@ -10,7 +10,6 @@
                     <div class="col-md-5">
                         <input type="text" name="content" class="form-control form-control-lg" placeholder="{{ t.placeholder_task }}" required>
                     </div>
-
                     <div class="col-md-3">
                         <select name="category" class="form-select form-select-lg">
                             <option value="{{ t.cat_work }}">💼 {{ t.cat_work }}</option>
@@ -21,7 +20,6 @@
                             <option value="{{ t.cat_other }}">📁 {{ t.cat_other }}</option>
                         </select>
                     </div>
-
                     <div class="col-md-3">
                         <input type="text"
                                name="deadline"
@@ -30,7 +28,6 @@
                                onfocus="(this.type='datetime-local')"
                                onblur="if(!this.value)this.type='text'">
                     </div>
-
                     <div class="col-md-1">
                         <button type="submit" class="btn btn-primary btn-lg w-100" title="{{ t.btn_add }}">
                             <i class="bi bi-plus-lg"></i>
@@ -46,7 +43,6 @@
                     <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
                     <input type="text" id="searchInput" class="form-control ps-5" placeholder="{{ t.placeholder_search }}">
                 </div>
-
                 <div class="d-flex align-items-center">
                     <i class="bi bi-funnel text-muted me-2"></i>
                     <select id="categoryFilter" class="form-select form-select-sm" style="width: 150px;">
@@ -59,7 +55,6 @@
                         <option value="{{ t.cat_other }}">📁 {{ t.cat_other }}</option>
                     </select>
                 </div>
-
                 <div class="form-check form-switch m-0">
                     <input class="form-check-input" type="checkbox" id="hideCompletedFilter">
                     <label class="form-check-label text-nowrap" for="hideCompletedFilter">{{ t.filter_hide }}</label>
@@ -77,52 +72,85 @@
             {% endif %}
 
             {% for task in tasks %}
-            <div class="list-group-item d-flex justify-content-between align-items-center p-3 task-item {% if task.completed %}bg-light opacity-75{% endif %}"
+            <div class="list-group-item p-3 task-item {% if task.completed %}bg-light opacity-75{% endif %}"
                  id="task-{{ task.id }}"
                  data-category="{{ task.category }}"
                  data-completed="{{ 'true' if task.completed else 'false' }}"
                  data-content="{{ task.content|lower }}">
 
-                <div class="d-flex align-items-center gap-3 w-100" style="cursor: pointer;" onclick="toggleTask({{ task.id }})">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="d-flex align-items-center gap-3 w-100" style="cursor: pointer;" onclick="toggleTask({{ task.id }})">
+                        <i class="bi {% if task.completed %}bi-check-circle-fill text-success{% else %}bi-circle text-secondary{% endif %} fs-4 task-icon"></i>
 
-                    <i class="bi {% if task.completed %}bi-check-circle-fill text-success{% else %}bi-circle text-secondary{% endif %} fs-4 task-icon"></i>
+                        <div class="w-100">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                                <span class="fs-5 task-text me-2 fw-bold {% if task.completed %}text-decoration-line-through text-muted{% endif %}">
+                                    {{ task.content }}
+                                </span>
 
-                    <div class="w-100">
-                        <div class="d-flex justify-content-between align-items-center flex-wrap">
-                            <span class="fs-5 task-text me-2 {% if task.completed %}text-decoration-line-through text-muted{% endif %}">
-                                {{ task.content }}
-                            </span>
-
-                            {% if task.deadline and not task.completed %}
-                                {% if task.deadline < now %}
-                                    <span class="badge bg-danger animate-pulse">
-                                        <i class="bi bi-fire"></i> {{ t.overdue_prefix }}: {{ task.deadline.strftime('%d.%m %H:%M') }}
-                                    </span>
-                                {% else %}
-                                    <span class="badge bg-info text-dark">
-                                        <i class="bi bi-hourglass-split"></i> {{ t.deadline_prefix }} {{ task.deadline.strftime('%d.%m %H:%M') }}
-                                    </span>
+                                {% if task.deadline and not task.completed %}
+                                    {% if task.deadline < now %}
+                                        <span class="badge bg-danger animate-pulse">
+                                            <i class="bi bi-fire"></i> {{ t.overdue_prefix }}: {{ task.deadline.strftime('%d.%m %H:%M') }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-info text-dark">
+                                            <i class="bi bi-hourglass-split"></i> {{ t.deadline_prefix }} {{ task.deadline.strftime('%d.%m %H:%M') }}
+                                        </span>
+                                    {% endif %}
                                 {% endif %}
-                            {% endif %}
-                        </div>
+                            </div>
 
-                        <div class="mt-1 d-flex align-items-center gap-2">
-                            <span class="badge rounded-pill bg-secondary text-white border">
-                                {{ task.category }}
-                            </span>
-
-                            {% if not task.deadline %}
-                            <small class="text-muted" style="font-size: 0.8em;">
-                                <i class="bi bi-clock"></i> {{ t.created_prefix }} {{ task.date_created.strftime('%d.%m') }}
-                            </small>
-                            {% endif %}
+                            <div class="mt-1 d-flex align-items-center gap-2">
+                                <span class="badge rounded-pill bg-secondary text-white border">
+                                    {{ task.category }}
+                                </span>
+                                {% if not task.deadline %}
+                                <small class="text-muted" style="font-size: 0.8em;">
+                                    <i class="bi bi-clock"></i> {{ t.created_prefix }} {{ task.date_created.strftime('%d.%m') }}
+                                </small>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
+                    <a href="/delete/{{ task.id }}" class="btn btn-outline-danger border-0 rounded-circle ms-2 btn-sm">
+                        <i class="bi bi-trash"></i>
+                    </a>
                 </div>
 
-                <a href="/delete/{{ task.id }}" class="btn btn-outline-danger border-0 rounded-circle ms-2" title="Удалить">
-                    <i class="bi bi-trash"></i>
-                </a>
+                {% if task.subtasks %}
+                <div class="mt-3">
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-success" role="progressbar"
+                             style="width: {{ task.get_progress() }}%;"
+                             id="progress-{{ task.id }}"></div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="ms-4 mt-2 border-start border-3 ps-3 task-subtasks">
+                    {% for sub in task.subtasks %}
+                    <div class="d-flex align-items-center justify-content-between mb-1 subtask-item" id="subtask-{{ sub.id }}">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox"
+                                   onchange="toggleSubtask({{ sub.id }}, {{ task.id }})"
+                                   {% if sub.completed %}checked{% endif %}>
+                            <label class="form-check-label {% if sub.completed %}text-decoration-line-through text-muted{% endif %}">
+                                {{ sub.content }}
+                            </label>
+                        </div>
+                        <a href="/delete_subtask/{{ sub.id }}" class="text-danger small text-decoration-none ms-2" style="opacity: 0.5;">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                    </div>
+                    {% endfor %}
+
+                    <form action="/task/{{ task.id }}/add_subtask" method="POST" class="mt-2 d-flex gap-2">
+                        <input type="text" name="subtask_content" class="form-control form-control-sm border-0 bg-light" placeholder="+ Шаг (например: Купить краску)" required>
+                        <button type="submit" class="btn btn-sm btn-outline-secondary border-0"><i class="bi bi-arrow-return-left"></i></button>
+                    </form>
+                </div>
+
             </div>
             {% endfor %}
         </div>
