@@ -2,15 +2,17 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-8">
+    <div class="col-md-9">
 
         <div class="card shadow-sm mb-4 border-0">
             <div class="card-body p-4 bg-white rounded">
-                <form method="POST" class="row g-2">
-                    <div class="col-md-7">
+                <form method="POST" class="row g-2 align-items-center">
+
+                    <div class="col-md-5">
                         <input type="text" name="content" class="form-control form-control-lg" placeholder="Новая задача..." required>
                     </div>
-                    <div class="col-md-4">
+
+                    <div class="col-md-3">
                         <select name="category" class="form-select form-select-lg">
                             <option value="Работа">💼 Работа</option>
                             <option value="Дом">🏠 Дом</option>
@@ -19,8 +21,18 @@
                             <option value="Важное">🔥 Важное</option>
                         </select>
                     </div>
+
+                    <div class="col-md-3">
+                        <input type="text"
+                               name="deadline"
+                               class="form-control form-control-lg text-secondary"
+                               placeholder="Срок выполнения"
+                               onfocus="(this.type='datetime-local')"
+                               onblur="if(!this.value)this.type='text'">
+                    </div>
+
                     <div class="col-md-1">
-                        <button type="submit" class="btn btn-primary btn-lg w-100 h-100" title="Добавить">
+                        <button type="submit" class="btn btn-primary btn-lg w-100" title="Добавить">
                             <i class="bi bi-plus-lg"></i>
                         </button>
                     </div>
@@ -29,10 +41,11 @@
         </div>
 
         <div class="list-group shadow-sm">
+
             {% if not tasks %}
                 <div class="text-center py-5 text-muted">
-                    <i class="bi bi-clipboard-check display-1"></i>
-                    <p class="mt-3 fs-5">Список пуст. Отдыхай или планируй!</p>
+                    <i class="bi bi-calendar-check display-1"></i>
+                    <p class="mt-3 fs-5">Планов нет. Наслаждайся свободой!</p>
                 </div>
             {% endif %}
 
@@ -44,10 +57,22 @@
                     <i class="bi {% if task.completed %}bi-check-circle-fill text-success{% else %}bi-circle text-secondary{% endif %} fs-4 task-icon"></i>
 
                     <div class="w-100">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="fs-5 task-text {% if task.completed %}text-decoration-line-through text-muted{% endif %}">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap">
+                            <span class="fs-5 task-text me-2 {% if task.completed %}text-decoration-line-through text-muted{% endif %}">
                                 {{ task.content }}
                             </span>
+
+                            {% if task.deadline and not task.completed %}
+                                {% if task.deadline < now %}
+                                    <span class="badge bg-danger animate-pulse">
+                                        <i class="bi bi-fire"></i> Просрочено: {{ task.deadline.strftime('%d.%m %H:%M') }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-info text-dark">
+                                        <i class="bi bi-hourglass-split"></i> до {{ task.deadline.strftime('%d.%m %H:%M') }}
+                                    </span>
+                                {% endif %}
+                            {% endif %}
                         </div>
 
                         <div class="mt-1 d-flex align-items-center gap-2">
@@ -59,9 +84,12 @@
                                 {% else %}bg-secondary{% endif %}">
                                 {{ task.category }}
                             </span>
+
+                            {% if not task.deadline %}
                             <small class="text-muted" style="font-size: 0.8em;">
-                                <i class="bi bi-clock"></i> {{ task.date_created.strftime('%d.%m %H:%M') }}
+                                <i class="bi bi-clock"></i> созд. {{ task.date_created.strftime('%d.%m') }}
                             </small>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -75,4 +103,15 @@
 
     </div>
 </div>
+
+<style>
+@keyframes pulse-red {
+    0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+    70% { box-shadow: 0 0 0 5px rgba(220, 53, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+}
+.animate-pulse {
+    animation: pulse-red 2s infinite;
+}
+</style>
 {% endblock %}

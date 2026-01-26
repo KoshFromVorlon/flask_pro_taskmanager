@@ -54,10 +54,21 @@
                         </li>
 
                     {% else %}
-                        <li class="nav-item"><a class="nav-link" href="/login">Вход</a></li>
-                        <li class="nav-item ms-2">
-                            <a class="btn btn-primary btn-sm px-3" href="/register">Регистрация</a>
+
+                        <li class="nav-item">
+                            <a class="{% if request.endpoint == 'main.login' %}btn btn-primary btn-sm px-3 shadow-sm{% else %}nav-link{% endif %}"
+                               href="/login">
+                               Вход
+                            </a>
                         </li>
+
+                        <li class="nav-item ms-2">
+                            <a class="{% if request.endpoint == 'main.register' %}btn btn-primary btn-sm px-3 shadow-sm{% else %}nav-link{% endif %}"
+                               href="/register">
+                               Регистрация
+                            </a>
+                        </li>
+
                     {% endif %}
                 </ul>
             </div>

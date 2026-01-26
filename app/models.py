@@ -12,7 +12,8 @@ class User(UserMixin, db.Model):
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.String(200), nullable=False)
-    category = db.Column(db.String(50), default='Другое')  # Новое поле
+    category = db.Column(db.String(50), default='Другое')
+    deadline = db.Column(db.DateTime, nullable=True)
     completed = db.Column(db.Boolean, default=False)
-    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+    date_created = db.Column(db.DateTime, default=datetime.now)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

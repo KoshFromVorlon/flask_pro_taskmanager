@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
 from . import db
 from .models import User, Task
 
@@ -18,8 +19,8 @@ def register():
             flash('Такой пользователь уже существует!', 'error')
             return redirect(url_for('main.register'))
 
-        # Обычная регистрация (всегда НЕ админ)
         user = User(username=username, password=generate_password_hash(password, method='scrypt'))
+        if User.query.count() == 0: user.is_admin = True
 
         db.session.add(user)
         db.session.commit()
@@ -53,7 +54,6 @@ def logout():
     return redirect(url_for('main.login'))
 
 
-# --- СМЕНА ПАРОЛЯ ---
 @main.route('/change-password', methods=['GET', 'POST'])
 @login_required
 def change_password():
@@ -61,12 +61,10 @@ def change_password():
         old_password = request.form.get('old_password')
         new_password = request.form.get('new_password')
 
-        # Проверка старого пароля
         if not check_password_hash(current_user.password, old_password):
             flash('Старый пароль введен неверно.', 'error')
             return redirect(url_for('main.change_password'))
 
-        # Запись нового
         current_user.password = generate_password_hash(new_password, method='scrypt')
         db.session.commit()
         flash('Пароль успешно изменен!', 'success')
@@ -82,16 +80,27 @@ def index():
     if request.method == 'POST':
         content = request.form.get('content')
         category = request.form.get('category')
+        deadline_str = request.form.get('deadline')  # Получаем строку "2023-10-30T14:30"
 
         if content:
-            new_task = Task(content=content, category=category, author=current_user)
+            # Превращаем строку в объект даты (если она была заполнена)
+            deadline_obj = None
+            if deadline_str:
+                try:
+                    deadline_obj = datetime.strptime(deadline_str, '%Y-%m-%dT%H:%M')
+                except ValueError:
+                    pass  # Если пришла ерунда, просто игнорируем
+
+            new_task = Task(content=content, category=category, deadline=deadline_obj, author=current_user)
             db.session.add(new_task)
             db.session.commit()
             flash('Задача добавлена!', 'success')
             return redirect(url_for('main.index'))
 
-    tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.completed, Task.date_created.desc()).all()
-    return render_template('index.html', tasks=tasks)
+    tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.completed, Task.deadline,
+                                                                   Task.date_created).all()
+    # Передаем "now" в шаблон, чтобы сравнивать даты
+    return render_template('index.html', tasks=tasks, now=datetime.now())
 
 
 @main.route('/delete/<int:id>')
@@ -105,7 +114,6 @@ def delete_task(id):
     return redirect(url_for('main.index'))
 
 
-# --- API ---
 @main.route('/toggle/<int:id>', methods=['POST'])
 @login_required
 def toggle(id):
