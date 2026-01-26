@@ -7,6 +7,7 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
+    avatar = db.Column(db.String(150), nullable=False, default='default.png')
     is_admin = db.Column(db.Boolean, default=False)
     tasks = db.relationship('Task', backref='author', lazy=True)
 
@@ -20,10 +21,9 @@ class Task(db.Model):
     date_created = db.Column(db.DateTime, default=datetime.now)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
-    # Связь с подзадачами (при удалении задачи удалятся и подзадачи)
     subtasks = db.relationship('Subtask', backref='parent_task', lazy=True, cascade="all, delete-orphan")
+    attachments = db.relationship('Attachment', backref='parent_task', lazy=True, cascade="all, delete-orphan")
 
-    # Вспомогательный метод для подсчета прогресса (возвращает проценты)
     def get_progress(self):
         total = len(self.subtasks)
         if total == 0:
@@ -36,4 +36,11 @@ class Subtask(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.String(200), nullable=False)
     completed = db.Column(db.Boolean, default=False)
+    task_id = db.Column(db.Integer, db.ForeignKey('task.id'), nullable=False)
+
+
+class Attachment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    filename = db.Column(db.String(150), nullable=False)
+    original_name = db.Column(db.String(150), nullable=False)
     task_id = db.Column(db.Integer, db.ForeignKey('task.id'), nullable=False)

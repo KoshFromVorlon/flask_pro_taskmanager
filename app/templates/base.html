@@ -28,33 +28,16 @@
                     <li class="nav-item dropdown me-3">
                         <a class="nav-link dropdown-toggle text-white d-flex align-items-center gap-2" href="#" id="langDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="bi bi-globe"></i> 
-                            
-                            {% if lang == 'ua' %}
-                                <span class="fi fi-ua"></span>
-                            {% elif lang == 'en' %}
-                                <span class="fi fi-gb"></span>
-                            {% elif lang == 'ru' %}
-                                <span class="fi fi-ru"></span>
+                            {% if lang == 'ua' %}<span class="fi fi-ua"></span>
+                            {% elif lang == 'en' %}<span class="fi fi-gb"></span>
+                            {% elif lang == 'ru' %}<span class="fi fi-ru"></span>
                             {% endif %}
-                            
                             <span>{{ lang|upper }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end shadow" style="min-width: auto;">
-                            <li>
-                                <a class="dropdown-item d-flex align-items-center gap-2 {% if lang == 'en' %}active{% endif %}" href="/set-language/en">
-                                    <span class="fi fi-gb"></span> EN
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item d-flex align-items-center gap-2 {% if lang == 'ru' %}active{% endif %}" href="/set-language/ru">
-                                    <span class="fi fi-ru"></span> RU
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item d-flex align-items-center gap-2 {% if lang == 'ua' %}active{% endif %}" href="/set-language/ua">
-                                    <span class="fi fi-ua"></span> UA
-                                </a>
-                            </li>
+                            <li><a class="dropdown-item d-flex align-items-center gap-2 {% if lang == 'en' %}active{% endif %}" href="/set-language/en"><span class="fi fi-gb"></span> EN</a></li>
+                            <li><a class="dropdown-item d-flex align-items-center gap-2 {% if lang == 'ru' %}active{% endif %}" href="/set-language/ru"><span class="fi fi-ru"></span> RU</a></li>
+                            <li><a class="dropdown-item d-flex align-items-center gap-2 {% if lang == 'ua' %}active{% endif %}" href="/set-language/ua"><span class="fi fi-ua"></span> UA</a></li>
                         </ul>
                     </li>
 
@@ -66,16 +49,16 @@
                             </a>
                         </li>
                         {% endif %}
-                        
+
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                                <i class="bi bi-person-circle fs-5"></i> 
+                                <img src="{{ url_for('static', filename='avatars/' + current_user.avatar) }}" class="rounded-circle object-fit-cover" style="width: 30px; height: 30px;">
                                 <span>{{ current_user.username }}</span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end shadow">
                                 <li>
-                                    <a class="dropdown-item" href="/change-password">
-                                        <i class="bi bi-shield-lock me-2"></i> {{ t.password_btn }}
+                                    <a class="dropdown-item" href="/profile">
+                                        <i class="bi bi-person-circle me-2"></i> {{ t.profile_btn }}
                                     </a>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
@@ -89,16 +72,10 @@
 
                     {% else %}
                         <li class="nav-item">
-                            <a class="{% if request.endpoint == 'main.login' %}btn btn-primary btn-sm px-3 shadow-sm{% else %}nav-link{% endif %}" 
-                               href="/login">
-                               {{ t.login_btn }}
-                            </a>
+                            <a class="{% if request.endpoint == 'main.login' %}btn btn-primary btn-sm px-3 shadow-sm{% else %}nav-link{% endif %}" href="/login">{{ t.login_btn }}</a>
                         </li>
                         <li class="nav-item ms-2">
-                            <a class="{% if request.endpoint == 'main.register' %}btn btn-primary btn-sm px-3 shadow-sm{% else %}nav-link{% endif %}" 
-                               href="/register">
-                               {{ t.register_btn }}
-                            </a>
+                            <a class="{% if request.endpoint == 'main.register' %}btn btn-primary btn-sm px-3 shadow-sm{% else %}nav-link{% endif %}" href="/register">{{ t.register_btn }}</a>
                         </li>
                     {% endif %}
                 </ul>
@@ -111,18 +88,14 @@
             {% if messages %}
                 {% for category, message in messages %}
                     <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show shadow-sm" role="alert">
-                        {% if category == 'error' %}
-                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                        {% else %}
-                            <i class="bi bi-check-circle-fill me-2"></i>
-                        {% endif %}
+                        {% if category == 'error' %}<i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        {% else %}<i class="bi bi-check-circle-fill me-2"></i>{% endif %}
                         {{ message }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 {% endfor %}
             {% endif %}
         {% endwith %}
-        
         {% block content %}{% endblock %}
     </div>
 

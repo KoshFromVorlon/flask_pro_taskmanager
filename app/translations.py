@@ -1,12 +1,11 @@
 translations = {
     'ru': {
-        # --- UI ---
         'title': 'TaskMaster Pro',
         'login_btn': 'Вход',
         'register_btn': 'Регистрация',
         'admin_btn': 'Админка',
         'logout_btn': 'Выйти',
-        'password_btn': 'Сменить пароль',
+        'profile_btn': 'Мой профиль',
         'placeholder_task': 'Новая задача...',
         'placeholder_deadline': 'Срок выполнения',
         'placeholder_search': 'Поиск по задачам...',
@@ -33,7 +32,16 @@ translations = {
         'have_account': 'Есть аккаунт?',
         'login_link': 'Войти',
 
-        # --- СИСТЕМНЫЕ СООБЩЕНИЯ (НОВОЕ) ---
+        # --- ПРОФИЛЬ (НОВОЕ) ---
+        'profile_header': 'Настройки профиля',
+        'avatar_label': 'Загрузить аватар',
+        'upload_btn': 'Обновить фото',
+        'change_pass_header': 'Смена пароля',
+        'old_pass': 'Текущий пароль',
+        'new_pass': 'Новый пароль',
+        'save_btn': 'Сохранить',
+
+        # --- СООБЩЕНИЯ ---
         'flash_user_exists': 'Такой пользователь уже существует!',
         'flash_register_success': 'Регистрация успешна! Добро пожаловать.',
         'flash_login_success': 'Вы успешно вошли!',
@@ -43,15 +51,16 @@ translations = {
         'flash_pass_changed': 'Пароль успешно изменен!',
         'flash_task_added': 'Задача добавлена!',
         'flash_task_deleted': 'Задача удалена.',
+        'flash_avatar_uploaded': 'Аватар обновлен!',
+        'flash_invalid_file': 'Неверный формат файла (разрешены jpg, png).',
     },
     'en': {
-        # --- UI ---
         'title': 'TaskMaster Pro',
         'login_btn': 'Login',
         'register_btn': 'Sign Up',
         'admin_btn': 'Admin Panel',
         'logout_btn': 'Logout',
-        'password_btn': 'Change Password',
+        'profile_btn': 'My Profile',
         'placeholder_task': 'New task...',
         'placeholder_deadline': 'Due date',
         'placeholder_search': 'Search tasks...',
@@ -78,7 +87,16 @@ translations = {
         'have_account': 'Have an account?',
         'login_link': 'Login',
 
-        # --- SYSTEM MESSAGES (NEW) ---
+        # --- PROFILE (NEW) ---
+        'profile_header': 'Profile Settings',
+        'avatar_label': 'Upload Avatar',
+        'upload_btn': 'Update Photo',
+        'change_pass_header': 'Change Password',
+        'old_pass': 'Current Password',
+        'new_pass': 'New Password',
+        'save_btn': 'Save',
+
+        # --- MESSAGES ---
         'flash_user_exists': 'This user already exists!',
         'flash_register_success': 'Registration successful! Welcome.',
         'flash_login_success': 'Login successful!',
@@ -88,15 +106,16 @@ translations = {
         'flash_pass_changed': 'Password changed successfully!',
         'flash_task_added': 'Task added!',
         'flash_task_deleted': 'Task deleted.',
+        'flash_avatar_uploaded': 'Avatar updated!',
+        'flash_invalid_file': 'Invalid file format (jpg, png allowed).',
     },
     'ua': {
-        # --- UI ---
         'title': 'TaskMaster Pro',
         'login_btn': 'Вхід',
         'register_btn': 'Реєстрація',
         'admin_btn': 'Адмінка',
         'logout_btn': 'Вийти',
-        'password_btn': 'Змінити пароль',
+        'profile_btn': 'Мій профіль',
         'placeholder_task': 'Нове завдання...',
         'placeholder_deadline': 'Термін виконання',
         'placeholder_search': 'Пошук завдань...',
@@ -123,7 +142,16 @@ translations = {
         'have_account': 'Є акаунт?',
         'login_link': 'Увійти',
 
-        # --- СИСТЕМНІ ПОВІДОМЛЕННЯ (НОВЕ) ---
+        # --- ПРОФІЛЬ (НОВЕ) ---
+        'profile_header': 'Налаштування профілю',
+        'avatar_label': 'Завантажити аватар',
+        'upload_btn': 'Оновити фото',
+        'change_pass_header': 'Зміна паролю',
+        'old_pass': 'Поточний пароль',
+        'new_pass': 'Новий пароль',
+        'save_btn': 'Зберегти',
+
+        # --- ПОВІДОМЛЕННЯ ---
         'flash_user_exists': 'Такий користувач вже існує!',
         'flash_register_success': 'Реєстрація успішна! Ласкаво просимо.',
         'flash_login_success': 'Ви успішно увійшли!',
@@ -133,5 +161,7 @@ translations = {
         'flash_pass_changed': 'Пароль успішно змінено!',
         'flash_task_added': 'Завдання додано!',
         'flash_task_deleted': 'Завдання видалено.',
+        'flash_avatar_uploaded': 'Аватар оновлено!',
+        'flash_invalid_file': 'Невірний формат файлу (дозволено jpg, png).',
     }
 }

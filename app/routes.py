@@ -1,28 +1,70 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, make_response
+import os
+import secrets
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, make_response, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from datetime import datetime
 from . import db
-from .models import User, Task, Subtask
+from .models import User, Task, Subtask, Attachment
 from .translations import translations
 
 main = Blueprint('main', __name__)
 
+# РАЗРЕШЕННЫЕ РАСШИРЕНИЯ
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'}
 
-# --- ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ ПЕРЕВОДА В PYTHON ---
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
 def get_text(key):
-    """Берет язык из куки и возвращает текст из словаря"""
     lang = request.cookies.get('lang', 'ru')
-    if lang not in translations:
-        lang = 'ru'
-    return translations[lang].get(key, key)  # Если ключа нет, вернет сам ключ
+    if lang not in translations: lang = 'ru'
+    return translations[lang].get(key, key)
 
 
-# --- ЯЗЫКИ ---
+# --- ИСПРАВЛЕННАЯ ФУНКЦИЯ СОХРАНЕНИЯ АВАТАРА ---
+def save_picture(form_picture):
+    random_hex = secrets.token_hex(8)
+    _, f_ext = os.path.splitext(form_picture.filename)
+    picture_fn = random_hex + f_ext
+
+    # Полный путь к папке
+    folder_path = os.path.join(current_app.root_path, 'static', 'avatars')
+
+    # АВТО-СОЗДАНИЕ ПАПКИ, ЕСЛИ ЕЁ НЕТ
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+    picture_path = os.path.join(folder_path, picture_fn)
+    form_picture.save(picture_path)
+    return picture_fn
+
+
+# --- ИСПРАВЛЕННАЯ ФУНКЦИЯ СОХРАНЕНИЯ ВЛОЖЕНИЙ ---
+def save_attachment(file_obj):
+    original_name = secure_filename(file_obj.filename)
+    random_hex = secrets.token_hex(8)
+    _, f_ext = os.path.splitext(original_name)
+    secure_name = random_hex + f_ext
+
+    # Полный путь к папке
+    folder_path = os.path.join(current_app.root_path, 'static', 'uploads')
+
+    # АВТО-СОЗДАНИЕ ПАПКИ, ЕСЛИ ЕЁ НЕТ
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+    path = os.path.join(folder_path, secure_name)
+    file_obj.save(path)
+    return secure_name, original_name
+
+
 @main.route('/set-language/<lang_code>')
 def set_language(lang_code):
-    if lang_code not in translations:
-        lang_code = 'ru'
+    if lang_code not in translations: lang_code = 'ru'
     referrer = request.referrer or url_for('main.index')
     resp = make_response(redirect(referrer))
     resp.set_cookie('lang', lang_code, max_age=30 * 24 * 60 * 60)
@@ -35,17 +77,13 @@ def register():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-
         if User.query.filter_by(username=username).first():
-            # ИСПОЛЬЗУЕМ ПЕРЕВОД
             flash(get_text('flash_user_exists'), 'error')
             return redirect(url_for('main.register'))
-
         user = User(username=username, password=generate_password_hash(password, method='scrypt'))
         db.session.add(user)
         db.session.commit()
         login_user(user)
-        # ИСПОЛЬЗУЕМ ПЕРЕВОД
         flash(get_text('flash_register_success'), 'success')
         return redirect(url_for('main.index'))
     return render_template('register.html')
@@ -57,14 +95,10 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
         user = User.query.filter_by(username=username).first()
-
         if user and check_password_hash(user.password, password):
             login_user(user)
-            # ИСПОЛЬЗУЕМ ПЕРЕВОД
             flash(get_text('flash_login_success'), 'success')
             return redirect(url_for('main.index'))
-
-        # ИСПОЛЬЗУЕМ ПЕРЕВОД
         flash(get_text('flash_login_error'), 'error')
     return render_template('login.html')
 
@@ -73,26 +107,43 @@ def login():
 @login_required
 def logout():
     logout_user()
-    # ИСПОЛЬЗУЕМ ПЕРЕВОД (Можно показывать на странице входа)
     return redirect(url_for('main.login'))
 
 
-@main.route('/change-password', methods=['GET', 'POST'])
+@main.route('/profile', methods=['GET', 'POST'])
 @login_required
-def change_password():
+def profile():
     if request.method == 'POST':
-        old_password = request.form.get('old_password')
-        new_password = request.form.get('new_password')
+        if 'avatar' in request.files:
+            file = request.files['avatar']
+            if file and file.filename != '':
+                allowed_extensions = {'.png', '.jpg', '.jpeg', '.gif'}
+                _, ext = os.path.splitext(file.filename)
+                if ext.lower() in allowed_extensions:
+                    try:
+                        filename = save_picture(file)
+                        current_user.avatar = filename
+                        db.session.commit()
+                        flash(get_text('flash_avatar_uploaded'), 'success')
+                    except Exception as e:
+                        flash(f"Error: {e}", 'error')
+                else:
+                    flash(get_text('flash_invalid_file'), 'error')
 
-        if not check_password_hash(current_user.password, old_password):
-            flash(get_text('flash_pass_wrong'), 'error')
-            return redirect(url_for('main.change_password'))
+        if 'old_password' in request.form and request.form['old_password']:
+            old_password = request.form.get('old_password')
+            new_password = request.form.get('new_password')
+            if not check_password_hash(current_user.password, old_password):
+                flash(get_text('flash_pass_wrong'), 'error')
+            else:
+                current_user.password = generate_password_hash(new_password, method='scrypt')
+                db.session.commit()
+                flash(get_text('flash_pass_changed'), 'success')
+        return redirect(url_for('main.profile'))
 
-        current_user.password = generate_password_hash(new_password, method='scrypt')
-        db.session.commit()
-        flash(get_text('flash_pass_changed'), 'success')
-        return redirect(url_for('main.index'))
-    return render_template('change_password.html')
+    # Генерируем ссылку на аватар
+    image_file = url_for('static', filename='avatars/' + current_user.avatar)
+    return render_template('profile.html', image_file=image_file)
 
 
 # --- ЗАДАЧИ ---
@@ -114,8 +165,31 @@ def index():
 
             new_task = Task(content=content, category=category_key, deadline=deadline_obj, author=current_user)
             db.session.add(new_task)
+            db.session.flush()
+
+            # --- ОБРАБОТКА ФАЙЛОВ ---
+            files = request.files.getlist('files')
+            file_error = False
+            for file in files:
+                if file and file.filename != '':
+                    if allowed_file(file.filename):
+                        try:
+                            secure_name, original_name = save_attachment(file)
+                            attachment = Attachment(filename=secure_name, original_name=original_name,
+                                                    parent_task=new_task)
+                            db.session.add(attachment)
+                        except Exception as e:
+                            flash(f"Error saving file: {e}", 'error')
+                    else:
+                        file_error = True
+
             db.session.commit()
-            flash(get_text('flash_task_added'), 'success')
+
+            if file_error:
+                flash(get_text('flash_file_type_error'), 'error')
+            else:
+                flash(get_text('flash_task_added'), 'success')
+
             return redirect(url_for('main.index'))
 
     tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.completed, Task.deadline,
@@ -145,13 +219,11 @@ def toggle(id):
     return jsonify({'success': False})
 
 
-# --- ПОДЗАДАЧИ ---
 @main.route('/task/<int:task_id>/add_subtask', methods=['POST'])
 @login_required
 def add_subtask(task_id):
     task = Task.query.get_or_404(task_id)
     content = request.form.get('subtask_content')
-
     if task.user_id == current_user.id and content:
         subtask = Subtask(content=content, parent_task=task)
         db.session.add(subtask)
@@ -168,7 +240,6 @@ def toggle_subtask(subtask_id):
         db.session.commit()
         progress = subtask.parent_task.get_progress()
         return jsonify({'success': True, 'completed': subtask.completed, 'progress': progress})
-
     return jsonify({'success': False})
 
 
