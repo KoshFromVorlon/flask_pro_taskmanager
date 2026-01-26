@@ -40,12 +40,9 @@ translations = {
         'save_btn': 'Сохранить',
         'attach_label': 'Прикрепить файлы',
         'files_count': 'файлов',
-
-        # --- ОШИБКИ ФАЙЛОВ ---
         'flash_file_type_error': 'Этот тип файла запрещен администратором!',
         'flash_file_size_error': 'Файл слишком большой! Максимум разрешено: ',
         'mb_label': 'МБ',
-
         'flash_user_exists': 'Такой пользователь уже существует!',
         'flash_register_success': 'Регистрация успешна! Добро пожаловать.',
         'flash_login_success': 'Вы успешно вошли!',
@@ -57,6 +54,12 @@ translations = {
         'flash_task_deleted': 'Задача удалена.',
         'flash_avatar_uploaded': 'Аватар обновлен!',
         'flash_invalid_file': 'Неверный формат файла (разрешены jpg, png).',
+
+        # --- ТЕМЫ (НОВОЕ) ---
+        'theme_light': 'Светлая',
+        'theme_dark': 'Темная',
+        'theme_gray': 'Серый асфальт',
+        'theme_casino': 'Зеленое сукно',
     },
     'en': {
         'title': 'TaskMaster Pro',
@@ -99,12 +102,9 @@ translations = {
         'save_btn': 'Save',
         'attach_label': 'Attach files',
         'files_count': 'files',
-
-        # --- FILE ERRORS ---
         'flash_file_type_error': 'This file type is not allowed by admin!',
         'flash_file_size_error': 'File is too big! Max allowed: ',
         'mb_label': 'MB',
-
         'flash_user_exists': 'This user already exists!',
         'flash_register_success': 'Registration successful! Welcome.',
         'flash_login_success': 'Login successful!',
@@ -116,6 +116,12 @@ translations = {
         'flash_task_deleted': 'Task deleted.',
         'flash_avatar_uploaded': 'Avatar updated!',
         'flash_invalid_file': 'Invalid file format (jpg, png allowed).',
+
+        # --- THEMES (NEW) ---
+        'theme_light': 'Light',
+        'theme_dark': 'Dark',
+        'theme_gray': 'Asphalt Gray',
+        'theme_casino': 'Casino Green',
     },
     'ua': {
         'title': 'TaskMaster Pro',
@@ -158,12 +164,9 @@ translations = {
         'save_btn': 'Зберегти',
         'attach_label': 'Прикріпити файли',
         'files_count': 'файлів',
-
-        # --- ОШИБКИ ФАЙЛОВ ---
         'flash_file_type_error': 'Цей тип файлу заборонено адміністратором!',
         'flash_file_size_error': 'Файл занадто великий! Максимум дозволено: ',
         'mb_label': 'МБ',
-
         'flash_user_exists': 'Такий користувач вже існує!',
         'flash_register_success': 'Реєстрація успішна! Ласкаво просимо.',
         'flash_login_success': 'Ви успішно увійшли!',
@@ -175,5 +178,11 @@ translations = {
         'flash_task_deleted': 'Завдання видалено.',
         'flash_avatar_uploaded': 'Аватар оновлено!',
         'flash_invalid_file': 'Невірний формат файлу (дозволено jpg, png).',
+
+        # --- ТЕМИ (НОВЕ) ---
+        'theme_light': 'Світла',
+        'theme_dark': 'Темна',
+        'theme_gray': 'Сірий асфальт',
+        'theme_casino': 'Зелене сукно',
     }
 }

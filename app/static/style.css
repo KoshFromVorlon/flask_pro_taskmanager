@@ -1,0 +1,85 @@
+/* Стандартные стили (которые уже были) */
+body {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* --- ТЕМА: CASINO GREEN (Зеленое сукно) --- */
+[data-bs-theme="casino"] {
+    /* Основные переменные Bootstrap */
+    --bs-body-bg: #2d5a42; /* Темно-зеленый фон */
+    --bs-body-color: #f8f9fa; /* Белый текст */
+
+    /* Переопределение компонентов */
+    --bs-primary: #ffc107; /* Золотые кнопки (фишки) */
+    --bs-primary-rgb: 255, 193, 7;
+
+    /* Карточки */
+    --bs-card-bg: #234734; /* Еще более темный зеленый для карточек */
+    --bs-card-color: #ffffff;
+    --bs-card-border-color: #407a5b;
+
+    /* Поля ввода */
+    --bs-body-bg-rgb: 45, 90, 66;
+    --bs-tertiary-bg: #234734;
+}
+
+/* Специфичные фиксы для Casino темы */
+[data-bs-theme="casino"] .navbar-dark {
+    background-color: #1a3326 !important; /* Очень темный зеленый для меню */
+}
+
+[data-bs-theme="casino"] .form-control,
+[data-bs-theme="casino"] .form-select {
+    background-color: #1f3d2e;
+    border-color: #407a5b;
+    color: #fff;
+}
+
+[data-bs-theme="casino"] .form-control:focus {
+    background-color: #264a38;
+    color: #fff;
+    border-color: #ffc107; /* Золотая обводка */
+    box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
+}
+
+[data-bs-theme="casino"] .list-group-item {
+    background-color: #234734;
+    color: #fff;
+    border-color: #407a5b;
+}
+
+/* --- ТЕМА: GRAY (Серый Асфальт) --- */
+[data-bs-theme="gray"] {
+    --bs-body-bg: #343a40; /* Темно-серый */
+    --bs-body-color: #e9ecef; /* Светло-серый текст */
+
+    --bs-primary: #adb5bd; /* Серые кнопки */
+    --bs-primary-rgb: 173, 181, 189;
+
+    --bs-card-bg: #495057; /* Чуть светлее для карточек */
+    --bs-card-border-color: #6c757d;
+}
+
+[data-bs-theme="gray"] .navbar-dark {
+    background-color: #212529 !important; /* Почти черный для меню */
+}
+
+[data-bs-theme="gray"] .form-control,
+[data-bs-theme="gray"] .form-select {
+    background-color: #495057;
+    border-color: #6c757d;
+    color: #fff;
+}
+
+[data-bs-theme="gray"] .list-group-item {
+    background-color: #495057;
+    color: #fff;
+    border-color: #6c757d;
+}
+
+/* Чтобы иконки в инпутах (например календарь) становились белыми в темных темах */
+[data-bs-theme="dark"] ::-webkit-calendar-picker-indicator,
+[data-bs-theme="gray"] ::-webkit-calendar-picker-indicator,
+[data-bs-theme="casino"] ::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}

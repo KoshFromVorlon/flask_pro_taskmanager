@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Авто-скрытие уведомлений
+    // 1. АВТО-СКРЫТИЕ УВЕДОМЛЕНИЙ
     const alerts = document.querySelectorAll('.alert-dismissible');
     alerts.forEach(alert => {
         setTimeout(() => {
@@ -10,7 +10,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 4000);
     });
 
-    // 2. Логика ПОИСКА и ФИЛЬТРОВ
+    // 2. ИНИЦИАЛИЗАЦИЯ ТЕМЫ
+    // Проверяем сохраненную тему в LocalStorage
+    const storedTheme = localStorage.getItem('theme');
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    let activeTheme = 'light';
+    if (storedTheme) {
+        activeTheme = storedTheme;
+    } else if (systemPrefersDark) {
+        activeTheme = 'dark';
+    }
+
+    // Применяем тему
+    setTheme(activeTheme);
+
+    // 3. ЛОГИКА ПОИСКА и ФИЛЬТРОВ
     const searchInput = document.getElementById('searchInput');
     const categoryFilter = document.getElementById('categoryFilter');
     const hideCompletedFilter = document.getElementById('hideCompletedFilter');
@@ -46,7 +61,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// --- 3. ГЛАВНЫЕ ЗАДАЧИ ---
+// --- ФУНКЦИЯ УСТАНОВКИ ТЕМЫ ---
+function setTheme(theme) {
+    // Устанавливаем атрибут для HTML (это меняет CSS переменные)
+    document.documentElement.setAttribute('data-bs-theme', theme);
+    // Сохраняем выбор пользователя
+    localStorage.setItem('theme', theme);
+
+    // Обновляем иконку активной темы в меню (если меню есть)
+    updateThemeIcon(theme);
+}
+
+function updateThemeIcon(theme) {
+    const themeIconDisplay = document.getElementById('theme-icon-active');
+    if (!themeIconDisplay) return;
+
+    // Снимаем класс 'active' со всех пунктов
+    document.querySelectorAll('[data-bs-theme-value]').forEach(el => {
+        el.classList.remove('active');
+        if (el.getAttribute('data-bs-theme-value') === theme) {
+            el.classList.add('active');
+        }
+    });
+
+    // Меняем иконку в навбаре
+    let iconClass = 'bi-sun-fill';
+    if (theme === 'dark') iconClass = 'bi-moon-stars-fill';
+    else if (theme === 'gray') iconClass = 'bi-cloud-fill';
+    else if (theme === 'casino') iconClass = 'bi-suit-club-fill';
+
+    themeIconDisplay.className = `bi ${iconClass}`;
+}
+
+
+// --- ФУНКЦИИ ЗАДАЧ ---
 async function toggleTask(id) {
     const row = document.getElementById(`task-${id}`);
     const icon = row.querySelector('.task-icon');
@@ -81,7 +129,6 @@ async function toggleTask(id) {
     }
 }
 
-// --- 4. НОВОЕ: ПОДЗАДАЧИ ---
 async function toggleSubtask(subtaskId, parentTaskId) {
     const subtaskRow = document.getElementById(`subtask-${subtaskId}`);
     const label = subtaskRow.querySelector('label');
@@ -92,14 +139,11 @@ async function toggleSubtask(subtaskId, parentTaskId) {
         const data = await response.json();
 
         if (data.success) {
-            // Меняем стиль текста подзадачи
             if (data.completed) {
                 label.classList.add('text-decoration-line-through', 'text-muted');
             } else {
                 label.classList.remove('text-decoration-line-through', 'text-muted');
             }
-
-            // Обновляем Прогресс-бар
             if (progressBar) {
                 progressBar.style.width = data.progress + '%';
             }

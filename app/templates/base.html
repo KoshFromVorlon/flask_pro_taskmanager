@@ -1,33 +1,71 @@
 <!DOCTYPE html>
-<html lang="{{ lang }}">
+<html lang="{{ lang }}" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ t.title }}</title>
-    
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@6.6.6/css/flag-icons.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <script>
+        (function() {
+            const storedTheme = localStorage.getItem('theme');
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            let activeTheme = storedTheme || (systemPrefersDark ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-bs-theme', activeTheme);
+        })();
+    </script>
 </head>
-<body class="bg-light">
+<body class="bg-body-tertiary">
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow-sm">
         <div class="container">
             <a class="navbar-brand fw-bold" href="/">
                 <i class="bi bi-check2-square text-success"></i> {{ t.title }}
             </a>
-            
+
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
-                    
+
+                    <li class="nav-item dropdown me-2">
+                        <button class="btn btn-link nav-link dropdown-toggle d-flex align-items-center" id="bd-theme" type="button" aria-expanded="false" data-bs-toggle="dropdown" data-bs-display="static">
+                            <i class="bi bi-sun-fill" id="theme-icon-active"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="bd-theme">
+                            <li>
+                                <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light" onclick="setTheme('light')">
+                                    <i class="bi bi-sun-fill me-2 opacity-50"></i> {{ t.theme_light }}
+                                </button>
+                            </li>
+                            <li>
+                                <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="dark" onclick="setTheme('dark')">
+                                    <i class="bi bi-moon-stars-fill me-2 opacity-50"></i> {{ t.theme_dark }}
+                                </button>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="gray" onclick="setTheme('gray')">
+                                    <i class="bi bi-cloud-fill me-2 opacity-50"></i> {{ t.theme_gray }}
+                                </button>
+                            </li>
+                            <li>
+                                <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="casino" onclick="setTheme('casino')">
+                                    <i class="bi bi-suit-club-fill me-2 opacity-50"></i> {{ t.theme_casino }}
+                                </button>
+                            </li>
+                        </ul>
+                    </li>
+
                     <li class="nav-item dropdown me-3">
                         <a class="nav-link dropdown-toggle text-white d-flex align-items-center gap-2" href="#" id="langDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-globe"></i> 
+                            <i class="bi bi-globe"></i>
                             {% if lang == 'ua' %}<span class="fi fi-ua"></span>
                             {% elif lang == 'en' %}<span class="fi fi-gb"></span>
                             {% elif lang == 'ru' %}<span class="fi fi-ru"></span>
