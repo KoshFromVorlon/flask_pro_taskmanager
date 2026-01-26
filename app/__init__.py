@@ -44,8 +44,8 @@ def create_app():
 
     from .models import User, Task, Settings
 
-    # ВАЖНОЕ ИЗМЕНЕНИЕ: template_mode='bootstrap4'
-    admin = Admin(app, name='TaskManager Admin', template_mode='bootstrap4')
+    # ИСПРАВЛЕНО: Убран параметр template_mode, вызывавший ошибку
+    admin = Admin(app, name='TaskManager Admin')
 
     admin.add_view(UserView(User, db.session, name='Пользователи'))
     admin.add_view(TaskView(Task, db.session, name='Задачи'))
