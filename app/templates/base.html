@@ -25,8 +25,16 @@
                 <ul class="navbar-nav ms-auto align-items-center">
 
                     <li class="nav-item dropdown me-3">
-                        <a class="nav-link dropdown-toggle text-white" href="#" id="langDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-globe"></i> {{ lang|upper }}
+                        <a class="nav-link dropdown-toggle text-white d-flex align-items-center gap-2" href="#" id="langDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-globe"></i>
+
+                            <span>
+                                {% if lang == 'ua' %}🇺🇦
+                                {% elif lang == 'en' %}🇬🇧
+                                {% elif lang == 'ru' %}🇷🇺
+                                {% endif %}
+                                {{ lang|upper }}
+                            </span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end shadow" style="min-width: auto;">
                             <li><a class="dropdown-item {% if lang == 'en' %}active{% endif %}" href="/set-language/en">🇬🇧 EN</a></li>
