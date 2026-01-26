@@ -27,7 +27,6 @@ class TaskView(SecureModelView):
     form_columns = ('content', 'category', 'completed', 'author')
 
 
-# View для Настроек (Запрещаем удалять и создавать новые, можно только редактировать)
 class SettingsView(SecureModelView):
     can_create = False
     can_delete = False
@@ -45,10 +44,11 @@ def create_app():
 
     from .models import User, Task, Settings
 
-    admin = Admin(app, name='TaskManager Admin')
+    # ВАЖНОЕ ИЗМЕНЕНИЕ: template_mode='bootstrap4'
+    admin = Admin(app, name='TaskManager Admin', template_mode='bootstrap4')
+
     admin.add_view(UserView(User, db.session, name='Пользователи'))
     admin.add_view(TaskView(Task, db.session, name='Задачи'))
-    # Добавляем раздел настроек
     admin.add_view(SettingsView(Settings, db.session, name='Настройки сайта'))
 
     from .routes import main
@@ -64,7 +64,7 @@ def create_app():
     with app.app_context():
         db.create_all()
         create_default_admin()
-        create_default_settings()  # Создаем настройки при запуске
+        create_default_settings()
 
     @login_manager.user_loader
     def load_user(user_id):
@@ -77,18 +77,15 @@ def create_default_admin():
     from .models import User
     admin_user = User.query.filter_by(username='admin').first()
     if not admin_user:
-        print("Создание дефолтного админа...")
         hashed_pw = generate_password_hash('admin', method='scrypt')
         admin_user = User(username='admin', password=hashed_pw, is_admin=True)
         db.session.add(admin_user)
         db.session.commit()
-        print("Админ создан: логин 'admin', пароль 'admin'")
 
 
 def create_default_settings():
     from .models import Settings
     if not Settings.query.first():
-        print("Создание настроек по умолчанию...")
         settings = Settings()
         db.session.add(settings)
         db.session.commit()

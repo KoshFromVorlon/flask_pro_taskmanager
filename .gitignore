@@ -1,10 +1,19 @@
+# Виртуальное окружение
 venv/
 .venv/
+
+# Python кэш
 *.pyc
 __pycache__/
+
+# База данных
 instance/
 site.db
 *.sqlite3
+
+# Загружаемые файлы
 app/static/uploads/*
 app/static/avatars/*
+
+# Исключение для дефолтной аватарки
 !app/static/avatars/default.png
