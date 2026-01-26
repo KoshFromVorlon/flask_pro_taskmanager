@@ -18,9 +18,8 @@ def register():
             flash('Такой пользователь уже существует!', 'error')
             return redirect(url_for('main.register'))
 
+        # Обычная регистрация (всегда НЕ админ)
         user = User(username=username, password=generate_password_hash(password, method='scrypt'))
-        # Первый пользователь становится админом
-        if User.query.count() == 0: user.is_admin = True
 
         db.session.add(user)
         db.session.commit()
@@ -54,6 +53,28 @@ def logout():
     return redirect(url_for('main.login'))
 
 
+# --- СМЕНА ПАРОЛЯ ---
+@main.route('/change-password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    if request.method == 'POST':
+        old_password = request.form.get('old_password')
+        new_password = request.form.get('new_password')
+
+        # Проверка старого пароля
+        if not check_password_hash(current_user.password, old_password):
+            flash('Старый пароль введен неверно.', 'error')
+            return redirect(url_for('main.change_password'))
+
+        # Запись нового
+        current_user.password = generate_password_hash(new_password, method='scrypt')
+        db.session.commit()
+        flash('Пароль успешно изменен!', 'success')
+        return redirect(url_for('main.index'))
+
+    return render_template('change_password.html')
+
+
 # --- ЗАДАЧИ ---
 @main.route('/', methods=['GET', 'POST'])
 @login_required
@@ -69,7 +90,6 @@ def index():
             flash('Задача добавлена!', 'success')
             return redirect(url_for('main.index'))
 
-    # Сортировка: сначала незавершенные, потом новые
     tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.completed, Task.date_created.desc()).all()
     return render_template('index.html', tasks=tasks)
 
