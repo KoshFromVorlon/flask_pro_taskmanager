@@ -10,14 +10,25 @@ db = SQLAlchemy()
 login_manager = LoginManager()
 
 
-# Настройка Админки: кто может заходить
-class MyAdminView(ModelView):
+# --- НАСТРОЙКИ АДМИНКИ ---
+
+# 1. Базовая защита (чтобы пускало только админа)
+class SecureModelView(ModelView):
     def is_accessible(self):
         return current_user.is_authenticated and current_user.is_admin
 
-    # Какие поля показывать в таблице и форме
-    column_list = ('username', 'is_admin', 'tasks')
-    form_columns = ('username', 'is_admin')  # Пароль через админку менять не дадим (сложно с хешем), только права
+
+# 2. Настройка для таблицы ПОЛЬЗОВАТЕЛЕЙ
+class UserView(SecureModelView):
+    column_list = ('username', 'is_admin', 'tasks')  # Что показывать в списке
+    form_columns = ('username', 'is_admin')  # Что можно редактировать
+    # Пароль скрываем, чтобы случайно не сломать хеш
+
+
+# 3. Настройка для таблицы ЗАДАЧ
+class TaskView(SecureModelView):
+    column_list = ('content', 'category', 'completed', 'author', 'date_created')
+    form_columns = ('content', 'category', 'completed', 'author')
 
 
 def create_app():
@@ -30,17 +41,18 @@ def create_app():
 
     from .models import User, Task
 
-    # Инициализация админ-панели
+    # Инициализация админ-панели с новыми настройками
     admin = Admin(app, name='TaskManager Admin')
-    admin.add_view(MyAdminView(User, db.session))
-    admin.add_view(MyAdminView(Task, db.session))
+    # Добавляем разные настройки для разных таблиц
+    admin.add_view(UserView(User, db.session, name='Пользователи'))
+    admin.add_view(TaskView(Task, db.session, name='Задачи'))
 
     from .routes import main
     app.register_blueprint(main)
 
     with app.app_context():
         db.create_all()
-        create_default_admin()  # <-- ВЫЗОВ ФУНКЦИИ СОЗДАНИЯ АДМИНА
+        create_default_admin()
 
     @login_manager.user_loader
     def load_user(user_id):
@@ -49,13 +61,10 @@ def create_app():
     return app
 
 
-# Функция создания дефолтного админа
 def create_default_admin():
     from .models import User
-    # Проверяем, существует ли пользователь 'admin'
     admin_user = User.query.filter_by(username='admin').first()
     if not admin_user:
-        # Создаем, если нет
         print("Создание дефолтного админа...")
         hashed_pw = generate_password_hash('admin', method='scrypt')
         admin_user = User(username='admin', password=hashed_pw, is_admin=True)
