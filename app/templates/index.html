@@ -123,7 +123,11 @@
                                 {% if task.attachments %}
                                     <div class="d-flex gap-1 ms-2">
                                         {% for file in task.attachments %}
-                                            <a href="{{ url_for('static', filename='uploads/' + file.filename) }}" target="_blank" class="badge bg-body-secondary text-primary border text-decoration-none" title="{{ file.original_name }}">
+                                            <a href="{{ url_for('static', filename='uploads/' + file.filename) }}"
+                                               target="_blank"
+                                               class="badge bg-body-secondary text-primary border text-decoration-none"
+                                               title="{{ file.original_name }}"
+                                               onclick="event.stopPropagation()">
                                                 <i class="bi bi-paperclip"></i>
                                                 {{ file.original_name[:10] }}{% if file.original_name|length > 10 %}...{% endif %}
                                             </a>
