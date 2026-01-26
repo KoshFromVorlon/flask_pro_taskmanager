@@ -1,85 +1,163 @@
-/* Стандартные стили (которые уже были) */
-body {
-    transition: background-color 0.3s ease, color 0.3s ease;
+/* --- ОБЩИЕ АНИМАЦИИ --- */
+body, .card, .navbar, .form-control, .list-group-item {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
-/* --- ТЕМА: CASINO GREEN (Зеленое сукно) --- */
+/* =========================================
+   ТЕМА: CASINO (Зеленое сукно)
+   ========================================= */
 [data-bs-theme="casino"] {
-    /* Основные переменные Bootstrap */
-    --bs-body-bg: #2d5a42; /* Темно-зеленый фон */
-    --bs-body-color: #f8f9fa; /* Белый текст */
+    /* Переопределяем основные переменные Bootstrap */
+    --bs-body-bg: #1e3a29;       /* Темно-зеленый фон */
+    --bs-body-color: #f0f0f0;    /* Белый текст */
+    --bs-body-bg-rgb: 30, 58, 41;
 
-    /* Переопределение компонентов */
-    --bs-primary: #ffc107; /* Золотые кнопки (фишки) */
+    /* Цвета ссылок и акцентов */
+    --bs-primary: #ffc107;       /* Золотой (фишки) */
     --bs-primary-rgb: 255, 193, 7;
+    --bs-link-color: #ffd54f;
+    --bs-link-hover-color: #ffecb3;
 
-    /* Карточки */
-    --bs-card-bg: #234734; /* Еще более темный зеленый для карточек */
-    --bs-card-color: #ffffff;
-    --bs-card-border-color: #407a5b;
+    /* Карточки (контейнеры задач) */
+    --bs-card-bg: #264a35;
+    --bs-card-border-color: #3e6b50;
+    --bs-card-color: #fff;
 
-    /* Поля ввода */
-    --bs-body-bg-rgb: 45, 90, 66;
-    --bs-tertiary-bg: #234734;
+    /* Границы */
+    --bs-border-color: #3e6b50;
+    --bs-border-color-translucent: rgba(62, 107, 80, 0.5);
 }
 
-/* Специфичные фиксы для Casino темы */
-[data-bs-theme="casino"] .navbar-dark {
-    background-color: #1a3326 !important; /* Очень темный зеленый для меню */
+/* Стилизация Кнопок в Casino */
+[data-bs-theme="casino"] .btn-primary {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #000; /* Черный текст на золоте читается лучше */
+    font-weight: bold;
+}
+[data-bs-theme="casino"] .btn-primary:hover {
+    background-color: #e0a800;
+    border-color: #d39e00;
 }
 
+/* Стилизация Полей ввода (Input) и Списков (Select) */
 [data-bs-theme="casino"] .form-control,
 [data-bs-theme="casino"] .form-select {
-    background-color: #1f3d2e;
-    border-color: #407a5b;
-    color: #fff;
+    background-color: #152b1f;   /* Очень темно-зеленый */
+    border-color: #3e6b50;
+    color: #e0e0e0;
 }
 
-[data-bs-theme="casino"] .form-control:focus {
-    background-color: #264a38;
+[data-bs-theme="casino"] .form-control:focus,
+[data-bs-theme="casino"] .form-select:focus {
+    background-color: #1a3326;
+    border-color: #ffc107;       /* Золотая обводка при фокусе */
     color: #fff;
-    border-color: #ffc107; /* Золотая обводка */
     box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
 }
 
+/* Плейсхолдеры (серый текст внутри инпутов) */
+[data-bs-theme="casino"] ::placeholder {
+    color: #8da696 !important;
+    opacity: 1;
+}
+
+/* Элементы списка задач */
 [data-bs-theme="casino"] .list-group-item {
-    background-color: #234734;
+    background-color: #264a35;
+    border-color: #3e6b50;
     color: #fff;
-    border-color: #407a5b;
 }
 
-/* --- ТЕМА: GRAY (Серый Асфальт) --- */
+/* Выпадающие меню (Dropdowns) */
+[data-bs-theme="casino"] .dropdown-menu {
+    background-color: #1e3a29;
+    border-color: #3e6b50;
+}
+[data-bs-theme="casino"] .dropdown-item {
+    color: #e0e0e0;
+}
+[data-bs-theme="casino"] .dropdown-item:hover {
+    background-color: #2e573f;
+    color: #ffc107;
+}
+
+
+/* =========================================
+   ТЕМА: GRAY (Серый Асфальт / VS Code style)
+   ========================================= */
 [data-bs-theme="gray"] {
-    --bs-body-bg: #343a40; /* Темно-серый */
-    --bs-body-color: #e9ecef; /* Светло-серый текст */
+    --bs-body-bg: #2b2d31;       /* Темно-серый мат */
+    --bs-body-color: #dee2e6;    /* Светло-серый текст */
+    --bs-body-bg-rgb: 43, 45, 49;
 
-    --bs-primary: #adb5bd; /* Серые кнопки */
-    --bs-primary-rgb: 173, 181, 189;
+    --bs-primary: #7289da;       /* Спокойный синий (как в Discord) */
+    --bs-primary-rgb: 114, 137, 218;
 
-    --bs-card-bg: #495057; /* Чуть светлее для карточек */
-    --bs-card-border-color: #6c757d;
+    --bs-card-bg: #313338;       /* Чуть светлее фона */
+    --bs-card-border-color: #1e1f22;
+    --bs-card-color: #dbdee1;
+
+    --bs-border-color: #444;
 }
 
-[data-bs-theme="gray"] .navbar-dark {
-    background-color: #212529 !important; /* Почти черный для меню */
-}
-
+/* Поля ввода в Gray */
 [data-bs-theme="gray"] .form-control,
 [data-bs-theme="gray"] .form-select {
-    background-color: #495057;
-    border-color: #6c757d;
-    color: #fff;
+    background-color: #1e1f22;   /* Почти черный */
+    border-color: #2b2d31;
+    color: #dbdee1;
 }
 
+[data-bs-theme="gray"] .form-control:focus,
+[data-bs-theme="gray"] .form-select:focus {
+    background-color: #1e1f22;
+    border-color: #7289da;
+    color: #fff;
+    box-shadow: 0 0 0 0.25rem rgba(114, 137, 218, 0.25);
+}
+
+/* Элементы списка */
 [data-bs-theme="gray"] .list-group-item {
-    background-color: #495057;
-    color: #fff;
-    border-color: #6c757d;
+    background-color: #313338;
+    border-color: #444;
+    color: #dbdee1;
 }
 
-/* Чтобы иконки в инпутах (например календарь) становились белыми в темных темах */
+/* Dropdown */
+[data-bs-theme="gray"] .dropdown-menu {
+    background-color: #1e1f22;
+    border-color: #444;
+}
+[data-bs-theme="gray"] .dropdown-item {
+    color: #dbdee1;
+}
+[data-bs-theme="gray"] .dropdown-item:hover {
+    background-color: #3f4147;
+    color: #fff;
+}
+
+
+/* =========================================
+   ОБЩИЕ ФИКСЫ ДЛЯ ТЕМНЫХ ТЕМ
+   ========================================= */
+
+/* Делаем иконку календаря в инпуте белой для всех темных тем */
 [data-bs-theme="dark"] ::-webkit-calendar-picker-indicator,
 [data-bs-theme="gray"] ::-webkit-calendar-picker-indicator,
 [data-bs-theme="casino"] ::-webkit-calendar-picker-indicator {
     filter: invert(1);
+}
+
+/* Фикс для кнопки "Закрыть" (крестик) в уведомлениях */
+[data-bs-theme="gray"] .btn-close,
+[data-bs-theme="casino"] .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Навигационная панель во всех темных темах должна быть темной */
+[data-bs-theme="casino"] .navbar,
+[data-bs-theme="gray"] .navbar {
+    background-color: rgba(0, 0, 0, 0.2) !important; /* Полупрозрачный черный */
+    backdrop-filter: blur(10px); /* Эффект размытия */
 }
