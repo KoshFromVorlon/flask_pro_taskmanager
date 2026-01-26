@@ -44,3 +44,22 @@ class Attachment(db.Model):
     filename = db.Column(db.String(150), nullable=False)
     original_name = db.Column(db.String(150), nullable=False)
     task_id = db.Column(db.Integer, db.ForeignKey('task.id'), nullable=False)
+
+
+# --- НОВАЯ МОДЕЛЬ НАСТРОЕК САЙТА ---
+class Settings(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    # Список расширений через запятую (напр: "jpg, png, txt")
+    allowed_extensions = db.Column(db.String(500), default='txt,pdf,png,jpg,jpeg,gif,doc,docx,xls,xlsx')
+    # Максимальный размер файла в Мегабайтах
+    max_file_size_mb = db.Column(db.Integer, default=5)
+
+    @staticmethod
+    def get_settings():
+        """Получает настройки (или создает дефолтные, если их нет)"""
+        settings = Settings.query.first()
+        if not settings:
+            settings = Settings()
+            db.session.add(settings)
+            db.session.commit()
+        return settings

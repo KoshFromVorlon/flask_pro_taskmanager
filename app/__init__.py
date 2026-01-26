@@ -5,7 +5,7 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from werkzeug.security import generate_password_hash
 from config import Config
-from .translations import translations  # Импортируем наш словарь
+from .translations import translations
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -27,6 +27,14 @@ class TaskView(SecureModelView):
     form_columns = ('content', 'category', 'completed', 'author')
 
 
+# View для Настроек (Запрещаем удалять и создавать новые, можно только редактировать)
+class SettingsView(SecureModelView):
+    can_create = False
+    can_delete = False
+    column_list = ('allowed_extensions', 'max_file_size_mb')
+    form_columns = ('allowed_extensions', 'max_file_size_mb')
+
+
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
@@ -35,30 +43,28 @@ def create_app():
     login_manager.init_app(app)
     login_manager.login_view = 'main.login'
 
-    from .models import User, Task
+    from .models import User, Task, Settings
 
     admin = Admin(app, name='TaskManager Admin')
     admin.add_view(UserView(User, db.session, name='Пользователи'))
     admin.add_view(TaskView(Task, db.session, name='Задачи'))
+    # Добавляем раздел настроек
+    admin.add_view(SettingsView(Settings, db.session, name='Настройки сайта'))
 
     from .routes import main
     app.register_blueprint(main)
 
-    # --- МАГИЯ ЯЗЫКОВ ---
-    # Эта функция запускается перед отрисовкой любого шаблона
     @app.context_processor
     def inject_language():
-        # Получаем язык из куки, по умолчанию 'ru'
         lang_code = request.cookies.get('lang', 'ru')
-        # Если в куке мусор, сбрасываем на ru
         if lang_code not in translations:
             lang_code = 'ru'
-        # Возвращаем словарь 't', который будет доступен в HTML как {{ t.ключ }}
         return dict(lang=lang_code, t=translations[lang_code])
 
     with app.app_context():
         db.create_all()
         create_default_admin()
+        create_default_settings()  # Создаем настройки при запуске
 
     @login_manager.user_loader
     def load_user(user_id):
@@ -77,3 +83,12 @@ def create_default_admin():
         db.session.add(admin_user)
         db.session.commit()
         print("Админ создан: логин 'admin', пароль 'admin'")
+
+
+def create_default_settings():
+    from .models import Settings
+    if not Settings.query.first():
+        print("Создание настроек по умолчанию...")
+        settings = Settings()
+        db.session.add(settings)
+        db.session.commit()

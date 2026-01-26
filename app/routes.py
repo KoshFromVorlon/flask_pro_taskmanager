@@ -6,17 +6,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from . import db
-from .models import User, Task, Subtask, Attachment
+from .models import User, Task, Subtask, Attachment, Settings
 from .translations import translations
 
 main = Blueprint('main', __name__)
-
-# РАЗРЕШЕННЫЕ РАСШИРЕНИЯ
-ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'}
-
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 def get_text(key):
@@ -25,38 +18,45 @@ def get_text(key):
     return translations[lang].get(key, key)
 
 
-# --- ИСПРАВЛЕННАЯ ФУНКЦИЯ СОХРАНЕНИЯ АВАТАРА ---
+# --- ПРОВЕРКА ФАЙЛА ЧЕРЕЗ БД ---
+def allowed_file(filename):
+    settings = Settings.get_settings()
+    # Получаем строку настроек, удаляем пробелы, разбиваем по запятой
+    allowed = set(ext.strip().lower() for ext in settings.allowed_extensions.split(','))
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed
+
+
+def check_file_size(file):
+    settings = Settings.get_settings()
+    # Переводим курсор в конец файла, чтобы узнать размер
+    file.seek(0, os.SEEK_END)
+    file_length = file.tell()
+    # Возвращаем курсор в начало, иначе файл сохранится пустым
+    file.seek(0)
+    # Сравниваем: байты <= мегабайты * 1024 * 1024
+    return file_length <= (settings.max_file_size_mb * 1024 * 1024)
+
+
 def save_picture(form_picture):
     random_hex = secrets.token_hex(8)
     _, f_ext = os.path.splitext(form_picture.filename)
     picture_fn = random_hex + f_ext
-
-    # Полный путь к папке
     folder_path = os.path.join(current_app.root_path, 'static', 'avatars')
-
-    # АВТО-СОЗДАНИЕ ПАПКИ, ЕСЛИ ЕЁ НЕТ
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
-
     picture_path = os.path.join(folder_path, picture_fn)
     form_picture.save(picture_path)
     return picture_fn
 
 
-# --- ИСПРАВЛЕННАЯ ФУНКЦИЯ СОХРАНЕНИЯ ВЛОЖЕНИЙ ---
 def save_attachment(file_obj):
     original_name = secure_filename(file_obj.filename)
     random_hex = secrets.token_hex(8)
     _, f_ext = os.path.splitext(original_name)
     secure_name = random_hex + f_ext
-
-    # Полный путь к папке
     folder_path = os.path.join(current_app.root_path, 'static', 'uploads')
-
-    # АВТО-СОЗДАНИЕ ПАПКИ, ЕСЛИ ЕЁ НЕТ
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
-
     path = os.path.join(folder_path, secure_name)
     file_obj.save(path)
     return secure_name, original_name
@@ -81,6 +81,9 @@ def register():
             flash(get_text('flash_user_exists'), 'error')
             return redirect(url_for('main.register'))
         user = User(username=username, password=generate_password_hash(password, method='scrypt'))
+        # Если это первый юзер, делаем админом
+        if User.query.count() == 0:
+            user.is_admin = True
         db.session.add(user)
         db.session.commit()
         login_user(user)
@@ -117,9 +120,8 @@ def profile():
         if 'avatar' in request.files:
             file = request.files['avatar']
             if file and file.filename != '':
-                allowed_extensions = {'.png', '.jpg', '.jpeg', '.gif'}
-                _, ext = os.path.splitext(file.filename)
-                if ext.lower() in allowed_extensions:
+                allowed_imgs = {'png', 'jpg', 'jpeg', 'gif'}
+                if '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in allowed_imgs:
                     try:
                         filename = save_picture(file)
                         current_user.avatar = filename
@@ -141,7 +143,6 @@ def profile():
                 flash(get_text('flash_pass_changed'), 'success')
         return redirect(url_for('main.profile'))
 
-    # Генерируем ссылку на аватар
     image_file = url_for('static', filename='avatars/' + current_user.avatar)
     return render_template('profile.html', image_file=image_file)
 
@@ -167,29 +168,33 @@ def index():
             db.session.add(new_task)
             db.session.flush()
 
-            # --- ОБРАБОТКА ФАЙЛОВ ---
+            # --- ОБРАБОТКА ФАЙЛОВ С ПРОВЕРКОЙ НАСТРОЕК ---
             files = request.files.getlist('files')
-            file_error = False
+            settings = Settings.get_settings()
+
             for file in files:
                 if file and file.filename != '':
-                    if allowed_file(file.filename):
-                        try:
-                            secure_name, original_name = save_attachment(file)
-                            attachment = Attachment(filename=secure_name, original_name=original_name,
-                                                    parent_task=new_task)
-                            db.session.add(attachment)
-                        except Exception as e:
-                            flash(f"Error saving file: {e}", 'error')
-                    else:
-                        file_error = True
+                    # 1. Проверка типа
+                    if not allowed_file(file.filename):
+                        flash(get_text('flash_file_type_error') + f" ({file.filename})", 'error')
+                        continue
+
+                    # 2. Проверка размера
+                    if not check_file_size(file):
+                        flash(get_text(
+                            'flash_file_size_error') + f"{settings.max_file_size_mb} {get_text('mb_label')} ({file.filename})",
+                              'error')
+                        continue
+
+                    try:
+                        secure_name, original_name = save_attachment(file)
+                        attachment = Attachment(filename=secure_name, original_name=original_name, parent_task=new_task)
+                        db.session.add(attachment)
+                    except Exception as e:
+                        flash(f"Error saving file: {e}", 'error')
 
             db.session.commit()
-
-            if file_error:
-                flash(get_text('flash_file_type_error'), 'error')
-            else:
-                flash(get_text('flash_task_added'), 'success')
-
+            flash(get_text('flash_task_added'), 'success')
             return redirect(url_for('main.index'))
 
     tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.completed, Task.deadline,

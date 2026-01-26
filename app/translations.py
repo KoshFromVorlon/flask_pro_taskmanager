@@ -31,8 +31,6 @@ translations = {
         'register_label': 'Логин',
         'have_account': 'Есть аккаунт?',
         'login_link': 'Войти',
-
-        # --- ПРОФИЛЬ (НОВОЕ) ---
         'profile_header': 'Настройки профиля',
         'avatar_label': 'Загрузить аватар',
         'upload_btn': 'Обновить фото',
@@ -40,8 +38,14 @@ translations = {
         'old_pass': 'Текущий пароль',
         'new_pass': 'Новый пароль',
         'save_btn': 'Сохранить',
+        'attach_label': 'Прикрепить файлы',
+        'files_count': 'файлов',
 
-        # --- СООБЩЕНИЯ ---
+        # --- ОШИБКИ ФАЙЛОВ ---
+        'flash_file_type_error': 'Этот тип файла запрещен администратором!',
+        'flash_file_size_error': 'Файл слишком большой! Максимум разрешено: ',
+        'mb_label': 'МБ',
+
         'flash_user_exists': 'Такой пользователь уже существует!',
         'flash_register_success': 'Регистрация успешна! Добро пожаловать.',
         'flash_login_success': 'Вы успешно вошли!',
@@ -86,8 +90,6 @@ translations = {
         'register_label': 'Username',
         'have_account': 'Have an account?',
         'login_link': 'Login',
-
-        # --- PROFILE (NEW) ---
         'profile_header': 'Profile Settings',
         'avatar_label': 'Upload Avatar',
         'upload_btn': 'Update Photo',
@@ -95,8 +97,14 @@ translations = {
         'old_pass': 'Current Password',
         'new_pass': 'New Password',
         'save_btn': 'Save',
+        'attach_label': 'Attach files',
+        'files_count': 'files',
 
-        # --- MESSAGES ---
+        # --- FILE ERRORS ---
+        'flash_file_type_error': 'This file type is not allowed by admin!',
+        'flash_file_size_error': 'File is too big! Max allowed: ',
+        'mb_label': 'MB',
+
         'flash_user_exists': 'This user already exists!',
         'flash_register_success': 'Registration successful! Welcome.',
         'flash_login_success': 'Login successful!',
@@ -141,8 +149,6 @@ translations = {
         'register_label': 'Логін',
         'have_account': 'Є акаунт?',
         'login_link': 'Увійти',
-
-        # --- ПРОФІЛЬ (НОВЕ) ---
         'profile_header': 'Налаштування профілю',
         'avatar_label': 'Завантажити аватар',
         'upload_btn': 'Оновити фото',
@@ -150,8 +156,14 @@ translations = {
         'old_pass': 'Поточний пароль',
         'new_pass': 'Новий пароль',
         'save_btn': 'Зберегти',
+        'attach_label': 'Прикріпити файли',
+        'files_count': 'файлів',
 
-        # --- ПОВІДОМЛЕННЯ ---
+        # --- ОШИБКИ ФАЙЛОВ ---
+        'flash_file_type_error': 'Цей тип файлу заборонено адміністратором!',
+        'flash_file_size_error': 'Файл занадто великий! Максимум дозволено: ',
+        'mb_label': 'МБ',
+
         'flash_user_exists': 'Такий користувач вже існує!',
         'flash_register_success': 'Реєстрація успішна! Ласкаво просимо.',
         'flash_login_success': 'Ви успішно увійшли!',
