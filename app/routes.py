@@ -264,7 +264,7 @@ def delete_subtask(subtask_id):
     return redirect(url_for('main.index'))
 
 
-# --- CALENDAR (NEW) ---
+# --- CALENDAR ---
 @main.route('/calendar')
 @login_required
 def calendar():
@@ -277,7 +277,7 @@ def get_events():
     tasks = Task.query.filter(Task.user_id == current_user.id, Task.deadline != None).all()
     events = []
 
-    # Цвета для категорий (Bootstrap классы)
+    # Цвета для категорий
     category_colors = {
         get_text('cat_work'): '#0d6efd',  # Blue (Primary)
         get_text('cat_home'): '#198754',  # Green (Success)
@@ -287,21 +287,30 @@ def get_events():
         get_text('cat_other'): '#6c757d'  # Gray (Secondary)
     }
 
+    # ИСПРАВЛЕНО: Списки цветов фона, требующих черного текста
+    light_colors = ['#ffc107', '#0dcaf0']  # Yellow, Cyan
+
     for task in tasks:
-        color = category_colors.get(task.category, '#6c757d')
-        # Если задача просрочена и не выполнена - красим в красный
+        bg_color = category_colors.get(task.category, '#6c757d')
+        text_color = '#000000' if bg_color in light_colors else '#ffffff'
+
+        # Если просрочено - красный
         if task.deadline < datetime.now() and not task.completed:
-            color = '#dc3545'
-        # Если выполнена - делаем бледной/зеленой
+            bg_color = '#dc3545'
+            text_color = '#ffffff'
+
+        # Если выполнено - бледно-зеленый (Teal)
         if task.completed:
-            color = '#20c997'  # Teal
+            bg_color = '#20c997'
+            text_color = '#ffffff'
 
         events.append({
             'title': task.content,
             'start': task.deadline.isoformat(),
-            'backgroundColor': color,
-            'borderColor': color,
-            'url': f'#task-{task.id}',  # Ссылка (пока просто якорь)
+            'backgroundColor': bg_color,
+            'borderColor': bg_color,
+            'textColor': text_color,  # Явно задаем цвет текста
+            'url': f'/#task-{task.id}',  # Ссылка на главную страницу к задаче
             'allDay': False
         })
     return jsonify(events)
