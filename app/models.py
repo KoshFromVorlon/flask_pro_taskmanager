@@ -19,6 +19,9 @@ class Task(db.Model):
     deadline = db.Column(db.DateTime, nullable=True)
     completed = db.Column(db.Boolean, default=False)
     date_created = db.Column(db.DateTime, default=datetime.now)
+    # НОВОЕ ПОЛЕ: Позиция для сортировки
+    position = db.Column(db.Integer, default=0)
+
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     subtasks = db.relationship('Subtask', backref='parent_task', lazy=True, cascade="all, delete-orphan")
@@ -26,8 +29,7 @@ class Task(db.Model):
 
     def get_progress(self):
         total = len(self.subtasks)
-        if total == 0:
-            return 0
+        if total == 0: return 0
         done = sum(1 for s in self.subtasks if s.completed)
         return int((done / total) * 100)
 
@@ -46,17 +48,13 @@ class Attachment(db.Model):
     task_id = db.Column(db.Integer, db.ForeignKey('task.id'), nullable=False)
 
 
-# --- НОВАЯ МОДЕЛЬ НАСТРОЕК САЙТА ---
 class Settings(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    # Список расширений через запятую (напр: "jpg, png, txt")
     allowed_extensions = db.Column(db.String(500), default='txt,pdf,png,jpg,jpeg,gif,doc,docx,xls,xlsx')
-    # Максимальный размер файла в Мегабайтах
     max_file_size_mb = db.Column(db.Integer, default=5)
 
     @staticmethod
     def get_settings():
-        """Получает настройки (или создает дефолтные, если их нет)"""
         settings = Settings.query.first()
         if not settings:
             settings = Settings()

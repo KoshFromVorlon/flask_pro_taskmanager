@@ -18,25 +18,22 @@ def get_text(key):
     return translations[lang].get(key, key)
 
 
-# --- ПРОВЕРКА ФАЙЛА ЧЕРЕЗ БД ---
+# --- ПРОВЕРКИ ФАЙЛОВ ---
 def allowed_file(filename):
     settings = Settings.get_settings()
-    # Получаем строку настроек, удаляем пробелы, разбиваем по запятой
     allowed = set(ext.strip().lower() for ext in settings.allowed_extensions.split(','))
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed
 
 
 def check_file_size(file):
     settings = Settings.get_settings()
-    # Переводим курсор в конец файла, чтобы узнать размер
     file.seek(0, os.SEEK_END)
     file_length = file.tell()
-    # Возвращаем курсор в начало, иначе файл сохранится пустым
     file.seek(0)
-    # Сравниваем: байты <= мегабайты * 1024 * 1024
     return file_length <= (settings.max_file_size_mb * 1024 * 1024)
 
 
+# --- СОХРАНЕНИЕ ФАЙЛОВ ---
 def save_picture(form_picture):
     random_hex = secrets.token_hex(8)
     _, f_ext = os.path.splitext(form_picture.filename)
@@ -71,7 +68,7 @@ def set_language(lang_code):
     return resp
 
 
-# --- АВТОРИЗАЦИЯ ---
+# --- AUTH ---
 @main.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -81,7 +78,6 @@ def register():
             flash(get_text('flash_user_exists'), 'error')
             return redirect(url_for('main.register'))
         user = User(username=username, password=generate_password_hash(password, method='scrypt'))
-        # Если это первый юзер, делаем админом
         if User.query.count() == 0:
             user.is_admin = True
         db.session.add(user)
@@ -147,7 +143,7 @@ def profile():
     return render_template('profile.html', image_file=image_file)
 
 
-# --- ЗАДАЧИ ---
+# --- TASKS ---
 @main.route('/', methods=['GET', 'POST'])
 @login_required
 def index():
@@ -164,28 +160,24 @@ def index():
                 except ValueError:
                     pass
 
+            # При создании задачи позицию можно ставить 0, она потом отсортируется
             new_task = Task(content=content, category=category_key, deadline=deadline_obj, author=current_user)
             db.session.add(new_task)
             db.session.flush()
 
-            # --- ОБРАБОТКА ФАЙЛОВ С ПРОВЕРКОЙ НАСТРОЕК ---
             files = request.files.getlist('files')
             settings = Settings.get_settings()
 
             for file in files:
                 if file and file.filename != '':
-                    # 1. Проверка типа
                     if not allowed_file(file.filename):
                         flash(get_text('flash_file_type_error') + f" ({file.filename})", 'error')
                         continue
-
-                    # 2. Проверка размера
                     if not check_file_size(file):
                         flash(get_text(
                             'flash_file_size_error') + f"{settings.max_file_size_mb} {get_text('mb_label')} ({file.filename})",
                               'error')
                         continue
-
                     try:
                         secure_name, original_name = save_attachment(file)
                         attachment = Attachment(filename=secure_name, original_name=original_name, parent_task=new_task)
@@ -197,9 +189,28 @@ def index():
             flash(get_text('flash_task_added'), 'success')
             return redirect(url_for('main.index'))
 
-    tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.completed, Task.deadline,
-                                                                   Task.date_created).all()
+    # ИЗМЕНЕНО: Сортировка по position, затем по дате
+    tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.position.asc(), Task.date_created.desc()).all()
     return render_template('index.html', tasks=tasks, now=datetime.now())
+
+
+# НОВЫЙ МАРШРУТ: Сохранение порядка задач
+@main.route('/reorder', methods=['POST'])
+@login_required
+def reorder_tasks():
+    data = request.get_json()
+    task_ids = data.get('task_ids', [])
+
+    # Получаем все задачи пользователя сразу
+    user_tasks = {task.id: task for task in Task.query.filter_by(user_id=current_user.id).all()}
+
+    for index, task_id in enumerate(task_ids):
+        t_id = int(task_id)
+        if t_id in user_tasks:
+            user_tasks[t_id].position = index
+
+    db.session.commit()
+    return jsonify({'success': True})
 
 
 @main.route('/delete/<int:id>')

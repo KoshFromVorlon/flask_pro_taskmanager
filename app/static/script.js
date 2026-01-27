@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. АВТО-СКРЫТИЕ УВЕДОМЛЕНИЙ
+    // 1. Авто-скрытие уведомлений
     const alerts = document.querySelectorAll('.alert-dismissible');
     alerts.forEach(alert => {
         setTimeout(() => {
@@ -10,18 +10,48 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 4000);
     });
 
-    // 2. ИНИЦИАЛИЗАЦИЯ ТЕМЫ
+    // 2. Инициализация темы
     const storedTheme = localStorage.getItem('theme');
     const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     let activeTheme = storedTheme || (systemPrefersDark ? 'dark' : 'light');
-
     setTheme(activeTheme);
 
-    // 3. ПОИСК и ФИЛЬТРЫ
+    // 3. DRAG AND DROP (Сортировка)
+    const taskList = document.getElementById('taskList');
+    if (taskList) {
+        new Sortable(taskList, {
+            animation: 150, // Плавность анимации
+            handle: '.drag-handle', // Тянуть только за ручку
+            ghostClass: 'bg-body-secondary', // Класс тени при перетаскивании
+
+            onEnd: function (evt) {
+                // Собираем новый порядок ID
+                const itemEls = taskList.querySelectorAll('.task-item');
+                const taskIds = Array.from(itemEls).map(el => el.getAttribute('data-task-id'));
+
+                // Отправляем на сервер
+                fetch('/reorder', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ task_ids: taskIds })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('Порядок сохранен');
+                    }
+                })
+                .catch(error => console.error('Ошибка сохранения порядка:', error));
+            }
+        });
+    }
+
+    // 4. Поиск и фильтры
     const searchInput = document.getElementById('searchInput');
     const categoryFilter = document.getElementById('categoryFilter');
     const hideCompletedFilter = document.getElementById('hideCompletedFilter');
-    const taskList = document.getElementById('taskList');
     const tasks = taskList ? taskList.querySelectorAll('.task-item') : [];
 
     function filterTasks() {
@@ -88,7 +118,6 @@ async function toggleTask(id) {
 
         if (data.success) {
             if (data.completed) {
-                // ИСПРАВЛЕНО: вместо bg-light используем адаптивный класс
                 row.classList.add('list-group-item-secondary', 'opacity-75');
                 text.classList.add('text-decoration-line-through', 'text-muted');
                 icon.classList.remove('bi-circle', 'text-secondary');
