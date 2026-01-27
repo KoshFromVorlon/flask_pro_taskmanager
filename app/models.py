@@ -6,7 +6,8 @@ from datetime import datetime
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
-    password = db.Column(db.String(150), nullable=False)
+    # ИСПРАВЛЕНО: Увеличили длину до 255 символов (scrypt генерирует длинные хеши)
+    password = db.Column(db.String(255), nullable=False)
     avatar = db.Column(db.String(150), nullable=False, default='default.png')
     is_admin = db.Column(db.Boolean, default=False)
     tasks = db.relationship('Task', backref='author', lazy=True)
@@ -19,7 +20,6 @@ class Task(db.Model):
     deadline = db.Column(db.DateTime, nullable=True)
     completed = db.Column(db.Boolean, default=False)
     date_created = db.Column(db.DateTime, default=datetime.now)
-    # НОВОЕ ПОЛЕ: Позиция для сортировки
     position = db.Column(db.Integer, default=0)
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

@@ -1,0 +1,8 @@
+.git
+.venv
+venv
+__pycache__
+site.db
+app/static/avatars/*
+!app/static/avatars/default.png
+app/static/uploads/*
