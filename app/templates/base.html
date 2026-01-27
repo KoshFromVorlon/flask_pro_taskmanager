@@ -77,33 +77,26 @@
                         </li>
                         {% endif %}
                         
+                        <li class="nav-item me-2">
+                            <a class="nav-link" href="/calendar">
+                                <i class="bi bi-calendar-date"></i> {{ t.calendar_btn }}
+                            </a>
+                        </li>
+
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
                                 <img src="{{ url_for('static', filename='avatars/' + current_user.avatar) }}" class="rounded-circle object-fit-cover" style="width: 30px; height: 30px;">
                                 <span>{{ current_user.username }}</span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end shadow">
-                                <li>
-                                    <a class="dropdown-item" href="/profile">
-                                        <i class="bi bi-person-circle me-2"></i> {{ t.profile_btn }}
-                                    </a>
-                                </li>
+                                <li><a class="dropdown-item" href="/profile"><i class="bi bi-person-circle me-2"></i> {{ t.profile_btn }}</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <a class="dropdown-item text-danger" href="/logout">
-                                        <i class="bi bi-box-arrow-right me-2"></i> {{ t.logout_btn }}
-                                    </a>
-                                </li>
+                                <li><a class="dropdown-item text-danger" href="/logout"><i class="bi bi-box-arrow-right me-2"></i> {{ t.logout_btn }}</a></li>
                             </ul>
                         </li>
-
                     {% else %}
-                        <li class="nav-item">
-                            <a class="{% if request.endpoint == 'main.login' %}btn btn-primary btn-sm px-3 shadow-sm{% else %}nav-link{% endif %}" href="/login">{{ t.login_btn }}</a>
-                        </li>
-                        <li class="nav-item ms-2">
-                            <a class="{% if request.endpoint == 'main.register' %}btn btn-primary btn-sm px-3 shadow-sm{% else %}nav-link{% endif %}" href="/register">{{ t.register_btn }}</a>
-                        </li>
+                        <li class="nav-item"><a class="{% if request.endpoint == 'main.login' %}btn btn-primary btn-sm px-3 shadow-sm{% else %}nav-link{% endif %}" href="/login">{{ t.login_btn }}</a></li>
+                        <li class="nav-item ms-2"><a class="{% if request.endpoint == 'main.register' %}btn btn-primary btn-sm px-3 shadow-sm{% else %}nav-link{% endif %}" href="/register">{{ t.register_btn }}</a></li>
                     {% endif %}
                 </ul>
             </div>
@@ -123,7 +116,6 @@
                 {% endfor %}
             {% endif %}
         {% endwith %}
-        
         {% block content %}{% endblock %}
     </div>
 

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card shadow border-0">
+            <div class="card-body p-4">
+                <div id="calendar"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            locale: '{{ lang }}', // Используем язык текущего пользователя
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,listWeek'
+            },
+            events: '/api/events', // Загружаем события из нашего API
+            eventTimeFormat: {
+                hour: '2-digit',
+                minute: '2-digit',
+                meridiem: false
+            },
+            height: 'auto' // Автоматическая высота
+        });
+        calendar.render();
+    });
+</script>
+
+<style>
+    [data-bs-theme="dark"] .fc-theme-standard .fc-scrollgrid {
+        border-color: #444;
+    }
+    [data-bs-theme="dark"] .fc-col-header-cell-cushion,
+    [data-bs-theme="dark"] .fc-daygrid-day-number {
+        color: #e0e0e0;
+    }
+    [data-bs-theme="dark"] .fc-button {
+        background-color: #343a40;
+        border-color: #444;
+    }
+    [data-bs-theme="dark"] .fc-button-active {
+        background-color: #0d6efd !important;
+    }
+</style>
+{% endblock %}

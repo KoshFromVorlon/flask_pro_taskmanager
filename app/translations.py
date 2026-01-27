@@ -6,6 +6,9 @@ translations = {
         'admin_btn': 'Админка',
         'logout_btn': 'Выйти',
         'profile_btn': 'Мой профиль',
+        # НОВОЕ
+        'calendar_btn': 'Календарь',
+
         'placeholder_task': 'Новая задача...',
         'placeholder_deadline': 'Срок выполнения',
         'placeholder_search': 'Поиск по задачам...',
@@ -54,8 +57,6 @@ translations = {
         'flash_task_deleted': 'Задача удалена.',
         'flash_avatar_uploaded': 'Аватар обновлен!',
         'flash_invalid_file': 'Неверный формат файла (разрешены jpg, png).',
-
-        # --- ТЕМЫ ---
         'theme_light': 'Светлая',
         'theme_dark': 'Темная',
     },
@@ -66,6 +67,9 @@ translations = {
         'admin_btn': 'Admin Panel',
         'logout_btn': 'Logout',
         'profile_btn': 'My Profile',
+        # NEW
+        'calendar_btn': 'Calendar',
+
         'placeholder_task': 'New task...',
         'placeholder_deadline': 'Due date',
         'placeholder_search': 'Search tasks...',
@@ -114,8 +118,6 @@ translations = {
         'flash_task_deleted': 'Task deleted.',
         'flash_avatar_uploaded': 'Avatar updated!',
         'flash_invalid_file': 'Invalid file format (jpg, png allowed).',
-
-        # --- THEMES ---
         'theme_light': 'Light',
         'theme_dark': 'Dark',
     },
@@ -126,6 +128,9 @@ translations = {
         'admin_btn': 'Адмінка',
         'logout_btn': 'Вийти',
         'profile_btn': 'Мій профіль',
+        # НОВЕ
+        'calendar_btn': 'Календар',
+
         'placeholder_task': 'Нове завдання...',
         'placeholder_deadline': 'Термін виконання',
         'placeholder_search': 'Пошук завдань...',
@@ -174,8 +179,6 @@ translations = {
         'flash_task_deleted': 'Завдання видалено.',
         'flash_avatar_uploaded': 'Аватар оновлено!',
         'flash_invalid_file': 'Невірний формат файлу (дозволено jpg, png).',
-
-        # --- ТЕМИ ---
         'theme_light': 'Світла',
         'theme_dark': 'Темна',
     }

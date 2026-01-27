@@ -160,7 +160,6 @@ def index():
                 except ValueError:
                     pass
 
-            # При создании задачи позицию можно ставить 0, она потом отсортируется
             new_task = Task(content=content, category=category_key, deadline=deadline_obj, author=current_user)
             db.session.add(new_task)
             db.session.flush()
@@ -189,19 +188,15 @@ def index():
             flash(get_text('flash_task_added'), 'success')
             return redirect(url_for('main.index'))
 
-    # ИЗМЕНЕНО: Сортировка по position, затем по дате
     tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.position.asc(), Task.date_created.desc()).all()
     return render_template('index.html', tasks=tasks, now=datetime.now())
 
 
-# НОВЫЙ МАРШРУТ: Сохранение порядка задач
 @main.route('/reorder', methods=['POST'])
 @login_required
 def reorder_tasks():
     data = request.get_json()
     task_ids = data.get('task_ids', [])
-
-    # Получаем все задачи пользователя сразу
     user_tasks = {task.id: task for task in Task.query.filter_by(user_id=current_user.id).all()}
 
     for index, task_id in enumerate(task_ids):
@@ -267,3 +262,46 @@ def delete_subtask(subtask_id):
         db.session.delete(subtask)
         db.session.commit()
     return redirect(url_for('main.index'))
+
+
+# --- CALENDAR (NEW) ---
+@main.route('/calendar')
+@login_required
+def calendar():
+    return render_template('calendar.html')
+
+
+@main.route('/api/events')
+@login_required
+def get_events():
+    tasks = Task.query.filter(Task.user_id == current_user.id, Task.deadline != None).all()
+    events = []
+
+    # Цвета для категорий (Bootstrap классы)
+    category_colors = {
+        get_text('cat_work'): '#0d6efd',  # Blue (Primary)
+        get_text('cat_home'): '#198754',  # Green (Success)
+        get_text('cat_study'): '#0dcaf0',  # Cyan (Info)
+        get_text('cat_shopping'): '#ffc107',  # Yellow (Warning)
+        get_text('cat_important'): '#dc3545',  # Red (Danger)
+        get_text('cat_other'): '#6c757d'  # Gray (Secondary)
+    }
+
+    for task in tasks:
+        color = category_colors.get(task.category, '#6c757d')
+        # Если задача просрочена и не выполнена - красим в красный
+        if task.deadline < datetime.now() and not task.completed:
+            color = '#dc3545'
+        # Если выполнена - делаем бледной/зеленой
+        if task.completed:
+            color = '#20c997'  # Teal
+
+        events.append({
+            'title': task.content,
+            'start': task.deadline.isoformat(),
+            'backgroundColor': color,
+            'borderColor': color,
+            'url': f'#task-{task.id}',  # Ссылка (пока просто якорь)
+            'allDay': False
+        })
+    return jsonify(events)
