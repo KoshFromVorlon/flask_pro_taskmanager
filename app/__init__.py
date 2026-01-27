@@ -1,5 +1,6 @@
 from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate  # 1. ИМПОРТ
 from flask_login import LoginManager, current_user
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
@@ -8,6 +9,7 @@ from config import Config
 from .translations import translations
 
 db = SQLAlchemy()
+migrate = Migrate()  # 2. СОЗДАНИЕ ОБЪЕКТА
 login_manager = LoginManager()
 
 
@@ -39,12 +41,14 @@ def create_app():
     app.config.from_object(Config)
 
     db.init_app(app)
+    # 3. ИНИЦИАЛИЗАЦИЯ MIGRATE (связываем app и db)
+    migrate.init_app(app, db)
+
     login_manager.init_app(app)
     login_manager.login_view = 'main.login'
 
     from .models import User, Task, Settings
 
-    # ИСПРАВЛЕНО: Убран параметр template_mode, вызывавший ошибку
     admin = Admin(app, name='TaskManager Admin')
 
     admin.add_view(UserView(User, db.session, name='Пользователи'))
@@ -62,8 +66,8 @@ def create_app():
         return dict(lang=lang_code, t=translations[lang_code])
 
     with app.app_context():
-        db.create_all()
-        create_default_admin()
+        # db.create_all()  <-- УБРАЛИ, теперь это делают миграции!
+        create_default_admin()  # Это вызовем, но база должна быть уже готова
         create_default_settings()
 
     @login_manager.user_loader
@@ -73,19 +77,28 @@ def create_app():
     return app
 
 
+# ВАЖНО: Функции создания админа и настроек нужно немного обезопасить,
+# чтобы они не падали, если таблицы еще нет (при первом запуске миграции).
 def create_default_admin():
     from .models import User
-    admin_user = User.query.filter_by(username='admin').first()
-    if not admin_user:
-        hashed_pw = generate_password_hash('admin', method='scrypt')
-        admin_user = User(username='admin', password=hashed_pw, is_admin=True)
-        db.session.add(admin_user)
-        db.session.commit()
+    from sqlalchemy import inspect
+    # Проверяем, существует ли таблица user перед запросом
+    inspector = inspect(db.engine)
+    if inspector.has_table("user"):
+        admin_user = User.query.filter_by(username='admin').first()
+        if not admin_user:
+            hashed_pw = generate_password_hash('admin', method='scrypt')
+            admin_user = User(username='admin', password=hashed_pw, is_admin=True)
+            db.session.add(admin_user)
+            db.session.commit()
 
 
 def create_default_settings():
     from .models import Settings
-    if not Settings.query.first():
-        settings = Settings()
-        db.session.add(settings)
-        db.session.commit()
+    from sqlalchemy import inspect
+    inspector = inspect(db.engine)
+    if inspector.has_table("settings"):
+        if not Settings.query.first():
+            settings = Settings()
+            db.session.add(settings)
+            db.session.commit()
