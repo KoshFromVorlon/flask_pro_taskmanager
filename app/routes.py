@@ -113,6 +113,7 @@ def logout():
 @login_required
 def profile():
     if request.method == 'POST':
+        # 1. Обновление Аватарки
         if 'avatar' in request.files:
             file = request.files['avatar']
             if file and file.filename != '':
@@ -128,6 +129,7 @@ def profile():
                 else:
                     flash(get_text('flash_invalid_file'), 'error')
 
+        # 2. Обновление пароля
         if 'old_password' in request.form and request.form['old_password']:
             old_password = request.form.get('old_password')
             new_password = request.form.get('new_password')
@@ -137,6 +139,18 @@ def profile():
                 current_user.password = generate_password_hash(new_password, method='scrypt')
                 db.session.commit()
                 flash(get_text('flash_pass_changed'), 'success')
+
+        # 3. [НОВОЕ] Обновление имени пользователя (для теста test_account_update)
+        new_username = request.form.get('username')
+        if new_username and new_username != current_user.username:
+            existing_user = User.query.filter_by(username=new_username).first()
+            if existing_user:
+                flash(get_text('flash_user_exists'), 'error')
+            else:
+                current_user.username = new_username
+                db.session.commit()
+                flash(get_text('flash_profile_updated'), 'success')  # Нужен ключ в translations
+
         return redirect(url_for('main.profile'))
 
     image_file = url_for('static', filename='avatars/' + current_user.avatar)
@@ -190,6 +204,26 @@ def index():
 
     tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.position.asc(), Task.date_created.desc()).all()
     return render_template('index.html', tasks=tasks, now=datetime.now())
+
+
+# [НОВОЕ] Маршрут для редактирования задачи (для теста test_update_task)
+@main.route('/task/<int:task_id>/update', methods=['POST'])
+@login_required
+def update_task(task_id):
+    task = Task.query.get_or_404(task_id)
+    if task.user_id != current_user.id:
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
+
+    content = request.form.get('content')
+    category = request.form.get('category')
+
+    if content:
+        task.content = content
+    if category:
+        task.category = category
+
+    db.session.commit()
+    return redirect(url_for('main.index'))
 
 
 @main.route('/reorder', methods=['POST'])
@@ -277,29 +311,25 @@ def get_events():
     tasks = Task.query.filter(Task.user_id == current_user.id, Task.deadline != None).all()
     events = []
 
-    # Цвета для категорий
     category_colors = {
-        get_text('cat_work'): '#0d6efd',  # Blue (Primary)
-        get_text('cat_home'): '#198754',  # Green (Success)
-        get_text('cat_study'): '#0dcaf0',  # Cyan (Info)
-        get_text('cat_shopping'): '#ffc107',  # Yellow (Warning)
-        get_text('cat_important'): '#dc3545',  # Red (Danger)
-        get_text('cat_other'): '#6c757d'  # Gray (Secondary)
+        get_text('cat_work'): '#0d6efd',
+        get_text('cat_home'): '#198754',
+        get_text('cat_study'): '#0dcaf0',
+        get_text('cat_shopping'): '#ffc107',
+        get_text('cat_important'): '#dc3545',
+        get_text('cat_other'): '#6c757d'
     }
 
-    # ИСПРАВЛЕНО: Списки цветов фона, требующих черного текста
-    light_colors = ['#ffc107', '#0dcaf0']  # Yellow, Cyan
+    light_colors = ['#ffc107', '#0dcaf0']
 
     for task in tasks:
         bg_color = category_colors.get(task.category, '#6c757d')
         text_color = '#000000' if bg_color in light_colors else '#ffffff'
 
-        # Если просрочено - красный
         if task.deadline < datetime.now() and not task.completed:
             bg_color = '#dc3545'
             text_color = '#ffffff'
 
-        # Если выполнено - бледно-зеленый (Teal)
         if task.completed:
             bg_color = '#20c997'
             text_color = '#ffffff'
@@ -309,8 +339,8 @@ def get_events():
             'start': task.deadline.isoformat(),
             'backgroundColor': bg_color,
             'borderColor': bg_color,
-            'textColor': text_color,  # Явно задаем цвет текста
-            'url': f'/#task-{task.id}',  # Ссылка на главную страницу к задаче
+            'textColor': text_color,
+            'url': f'/#task-{task.id}',
             'allDay': False
         })
     return jsonify(events)
