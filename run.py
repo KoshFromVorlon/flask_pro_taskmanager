@@ -1,7 +1,11 @@
 from app import create_app
+from flask_migrate import upgrade  # <--- Добавили импорт
 
 app = create_app()
 
+# <--- Добавляем блок автоматического обновления базы
+with app.app_context():
+    upgrade()
+
 if __name__ == '__main__':
-    # host='0.0.0.0' нужен, чтобы сайт был доступен из контейнера (если запускать python run.py)
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run()
