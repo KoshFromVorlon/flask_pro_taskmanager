@@ -69,7 +69,8 @@ docker-compose exec web coverage run -m pytest
 docker-compose exec web coverage report
 ```
 
-📂 Структура проекта:
+## 📂 Структура проекта:
+```text
 flask_pro_taskmanager/
 ├── .github/
 │   └── workflows/
@@ -108,3 +109,4 @@ flask_pro_taskmanager/
 ├── LICENSE              # Лицензия MIT
 ├── requirements.txt     # Список зависимостей Python
 └── run.py               # Точка входа в приложение
+```
