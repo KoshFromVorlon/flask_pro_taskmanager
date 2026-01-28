@@ -71,15 +71,40 @@ docker-compose exec web coverage report
 
 📂 Структура проекта:
 flask_pro_taskmanager/
+├── .github/
+│   └── workflows/
+│       └── tests.yml    # Конфигурация CI/CD (GitHub Actions)
 ├── app/
-│   ├── static/          # CSS, JS, изображения
-│   ├── templates/       # HTML шаблоны
-│   ├── models.py        # Модели базы данных (SQLAlchemy)
-│   ├── routes.py        # Логика маршрутов и контроллеры
-│   └── ...
-├── migrations/          # Миграции базы данных
-├── tests/               # Тесты (Pytest)
-├── Dockerfile           # Инструкция сборки образа
-├── docker-compose.yml   # Оркестрация сервисов (App + DB)
-├── requirements.txt     # Зависимости Python
-└── run.py               # Точка входа
+│   ├── static/
+│   │   ├── avatars/     # Загруженные аватарки пользователей
+│   │   ├── uploads/     # Файлы, прикрепленные к задачам
+│   │   ├── script.js    # Логика Drag-and-Drop и календаря
+│   │   └── style.css    # Стили оформления
+│   ├── templates/
+│   │   ├── admin/       # Шаблоны админ-панели
+│   │   ├── base.html    # Базовый макет (навбар, футер)
+│   │   ├── calendar.html
+│   │   ├── index.html   # Главная страница (список задач)
+│   │   ├── login.html
+│   │   ├── profile.html
+│   │   └── register.html
+│   ├── __init__.py      # Инициализация приложения (App Factory)
+│   ├── models.py        # Модели БД (User, Task, Subtask, Attachment)
+│   ├── routes.py        # Основная логика и маршруты
+│   └── translations.py  # Словарь для мультиязычности (RU/EN)
+├── migrations/          # Версии миграций базы данных (Alembic)
+├── tests/               # Пакет тестов (Pytest)
+│   ├── conftest.py      # Фикстуры и настройка тестовой БД
+│   ├── test_api.py      # Тесты API календаря
+│   ├── test_extended.py # Тесты профиля и редких кейсов
+│   ├── test_models.py   # Тесты моделей данных
+│   ├── test_routes.py   # Тесты основных страниц
+│   ├── test_security.py # Тесты прав доступа
+│   └── test_tasks.py    # Тесты логики задач
+├── .dockerignore        # Исключения для Docker-сборки
+├── config.py            # Конфигурация переменных окружения
+├── Dockerfile           # Инструкция сборки контейнера приложения
+├── docker-compose.yml   # Оркестрация сервисов (Web + Postgres)
+├── LICENSE              # Лицензия MIT
+├── requirements.txt     # Список зависимостей Python
+└── run.py               # Точка входа в приложение
