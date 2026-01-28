@@ -74,15 +74,21 @@ def register():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
+
         if User.query.filter_by(username=username).first():
+            print(f"⚠️ Попытка регистрации существующего юзера: {username}")  # ЛОГ
             flash(get_text('flash_user_exists'), 'error')
             return redirect(url_for('main.register'))
+
         user = User(username=username, password=generate_password_hash(password, method='scrypt'))
         if User.query.count() == 0:
             user.is_admin = True
+
         db.session.add(user)
         db.session.commit()
         login_user(user)
+
+        print(f"✅ Новый пользователь зарегистрирован: {username}")  # ЛОГ
         flash(get_text('flash_register_success'), 'success')
         return redirect(url_for('main.index'))
     return render_template('register.html')
@@ -94,10 +100,14 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
         user = User.query.filter_by(username=username).first()
+
         if user and check_password_hash(user.password, password):
             login_user(user)
+            print(f"🔑 Пользователь вошел: {user.username}")  # ЛОГ
             flash(get_text('flash_login_success'), 'success')
             return redirect(url_for('main.index'))
+
+        print(f"❌ Неудачный вход: {username}")  # ЛОГ
         flash(get_text('flash_login_error'), 'error')
     return render_template('login.html')
 
@@ -105,6 +115,7 @@ def login():
 @main.route('/logout')
 @login_required
 def logout():
+    print(f"🚪 Выход пользователя: {current_user.username}")  # ЛОГ
     logout_user()
     return redirect(url_for('main.login'))
 
@@ -123,8 +134,10 @@ def profile():
                         filename = save_picture(file)
                         current_user.avatar = filename
                         db.session.commit()
+                        print(f"🖼️ Пользователь {current_user.username} обновил аватарку")  # ЛОГ
                         flash(get_text('flash_avatar_uploaded'), 'success')
                     except Exception as e:
+                        print(f"⚠️ Ошибка загрузки аватара: {e}")
                         flash(f"Error: {e}", 'error')
                 else:
                     flash(get_text('flash_invalid_file'), 'error')
@@ -138,18 +151,21 @@ def profile():
             else:
                 current_user.password = generate_password_hash(new_password, method='scrypt')
                 db.session.commit()
+                print(f"🔐 Пользователь {current_user.username} сменил пароль")  # ЛОГ
                 flash(get_text('flash_pass_changed'), 'success')
 
-        # 3. [НОВОЕ] Обновление имени пользователя (для теста test_account_update)
+        # 3. Обновление имени пользователя
         new_username = request.form.get('username')
         if new_username and new_username != current_user.username:
             existing_user = User.query.filter_by(username=new_username).first()
             if existing_user:
                 flash(get_text('flash_user_exists'), 'error')
             else:
+                old_name = current_user.username
                 current_user.username = new_username
                 db.session.commit()
-                flash(get_text('flash_profile_updated'), 'success')  # Нужен ключ в translations
+                print(f"👤 Смена имени: {old_name} -> {new_username}")  # ЛОГ
+                flash(get_text('flash_profile_updated'), 'success')
 
         return redirect(url_for('main.profile'))
 
@@ -176,11 +192,13 @@ def index():
 
             new_task = Task(content=content, category=category_key, deadline=deadline_obj, author=current_user)
             db.session.add(new_task)
-            db.session.flush()
+            db.session.flush()  # Получаем ID задачи до коммита
 
+            # Обработка файлов
             files = request.files.getlist('files')
             settings = Settings.get_settings()
 
+            files_count = 0
             for file in files:
                 if file and file.filename != '':
                     if not allowed_file(file.filename):
@@ -195,10 +213,13 @@ def index():
                         secure_name, original_name = save_attachment(file)
                         attachment = Attachment(filename=secure_name, original_name=original_name, parent_task=new_task)
                         db.session.add(attachment)
+                        files_count += 1
                     except Exception as e:
+                        print(f"⚠️ Ошибка сохранения файла: {e}")
                         flash(f"Error saving file: {e}", 'error')
 
             db.session.commit()
+            print(f"📝 {current_user.username} создал задачу: '{content}' (+{files_count} файлов)")  # ЛОГ
             flash(get_text('flash_task_added'), 'success')
             return redirect(url_for('main.index'))
 
@@ -206,7 +227,6 @@ def index():
     return render_template('index.html', tasks=tasks, now=datetime.now())
 
 
-# [НОВОЕ] Маршрут для редактирования задачи (для теста test_update_task)
 @main.route('/task/<int:task_id>/update', methods=['POST'])
 @login_required
 def update_task(task_id):
@@ -217,12 +237,11 @@ def update_task(task_id):
     content = request.form.get('content')
     category = request.form.get('category')
 
-    if content:
-        task.content = content
-    if category:
-        task.category = category
+    if content: task.content = content
+    if category: task.category = category
 
     db.session.commit()
+    print(f"✏️ Задачу {task_id} обновили")  # ЛОГ
     return redirect(url_for('main.index'))
 
 
@@ -247,8 +266,10 @@ def reorder_tasks():
 def delete_task(id):
     task = Task.query.get_or_404(id)
     if task.user_id == current_user.id:
+        title_backup = task.content
         db.session.delete(task)
         db.session.commit()
+        print(f"🗑️ {current_user.username} удалил задачу: '{title_backup}'")  # ЛОГ
         flash(get_text('flash_task_deleted'), 'success')
     return redirect(url_for('main.index'))
 
@@ -260,6 +281,8 @@ def toggle(id):
     if task.user_id == current_user.id:
         task.completed = not task.completed
         db.session.commit()
+        status = "выполнена" if task.completed else "активна"
+        print(f"✅ Задача '{task.content}' теперь {status}")  # ЛОГ
         return jsonify({'success': True, 'completed': task.completed})
     return jsonify({'success': False})
 
@@ -273,6 +296,7 @@ def add_subtask(task_id):
         subtask = Subtask(content=content, parent_task=task)
         db.session.add(subtask)
         db.session.commit()
+        print(f"➕ Подзадача добавлена к задаче {task_id}")  # ЛОГ
     return redirect(url_for('main.index'))
 
 
@@ -311,27 +335,29 @@ def get_events():
     tasks = Task.query.filter(Task.user_id == current_user.id, Task.deadline != None).all()
     events = []
 
+    # Цвета для категорий
     category_colors = {
-        get_text('cat_work'): '#0d6efd',
-        get_text('cat_home'): '#198754',
-        get_text('cat_study'): '#0dcaf0',
-        get_text('cat_shopping'): '#ffc107',
-        get_text('cat_important'): '#dc3545',
-        get_text('cat_other'): '#6c757d'
+        get_text('cat_work'): '#0d6efd',  # Blue
+        get_text('cat_home'): '#198754',  # Green
+        get_text('cat_study'): '#0dcaf0',  # Cyan
+        get_text('cat_shopping'): '#ffc107',  # Yellow
+        get_text('cat_important'): '#dc3545',  # Red
+        get_text('cat_other'): '#6c757d'  # Grey
     }
-
     light_colors = ['#ffc107', '#0dcaf0']
 
     for task in tasks:
         bg_color = category_colors.get(task.category, '#6c757d')
         text_color = '#000000' if bg_color in light_colors else '#ffffff'
 
+        # Если просрочено
         if task.deadline < datetime.now() and not task.completed:
-            bg_color = '#dc3545'
+            bg_color = '#dc3545'  # Red
             text_color = '#ffffff'
 
+        # Если выполнено
         if task.completed:
-            bg_color = '#20c997'
+            bg_color = '#20c997'  # Teal
             text_color = '#ffffff'
 
         events.append({
