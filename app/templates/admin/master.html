@@ -1,77 +1,149 @@
 {% extends 'admin/base.html' %}
 
-{% block head %}
+{% block head_css %}
     {{ super() }}
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <script>
-        (function() {
-            const storedTheme = localStorage.getItem('theme');
-            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            let activeTheme = storedTheme || (systemPrefersDark ? 'dark' : 'light');
-            document.documentElement.setAttribute('data-bs-theme', activeTheme);
-        })();
-    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        /* --- Global Dark Theme Overrides --- */
-        [data-bs-theme="dark"] body {
-            background-color: #212529;
-            color: #e0e0e0;
-        }
-        [data-bs-theme="dark"] .navbar {
+        /* --- 1. GLOBAL BACKGROUND AND COLORS (Hard Dark Mode) --- */
+        body, html {
             background-color: #212529 !important;
-            border-bottom: 1px solid #444;
-        }
-        [data-bs-theme="dark"] .navbar-brand,
-        [data-bs-theme="dark"] .nav-link {
             color: #e0e0e0 !important;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* --- Table Styling for Dark Mode --- */
-        [data-bs-theme="dark"] .table {
-            color: #e0e0e0;
-            background-color: #2c3034;
-            border-color: #444;
-            --bs-table-bg: #2c3034;
-            --bs-table-color: #e0e0e0;
-            --bs-table-border-color: #444;
+        /* --- 2. EXPAND CONTAINER (Fix for narrow width) --- */
+        .container {
+            max-width: 96% !important;
+            margin-left: auto;
+            margin-right: auto;
+            padding-left: 15px;
+            padding-right: 15px;
         }
 
-        /* Table Headers */
-        [data-bs-theme="dark"] .table th {
-            background-color: #212529;
-            border-bottom-color: #444;
-            color: #fff;
+        /* --- 3. NAVBAR --- */
+        .navbar {
+            background-color: #0d6efd !important; /* Blue to match main site */
+            border-bottom: 1px solid #444;
+            padding: 0.8rem 1rem;
         }
-
-        /* Striped Rows Adjustment */
-        [data-bs-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) > * {
-            background-color: rgba(255, 255, 255, 0.05);
-            color: #e0e0e0;
-            box-shadow: none;
+        .navbar-brand {
+            font-size: 1.5rem !important;
+            font-weight: bold;
+            color: white !important;
         }
-        [data-bs-theme="dark"] .table-striped > tbody > tr:nth-of-type(even) > * {
-             background-color: #2c3034;
-             color: #e0e0e0;
-             box-shadow: none;
+        .navbar-nav .nav-link {
+            color: rgba(255,255,255,0.85) !important;
+            font-size: 1.1rem;
+            margin-right: 15px;
         }
-
-        /* Hover State */
-        [data-bs-theme="dark"] .table-hover > tbody > tr:hover > * {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: #fff;
-        }
-
-        /* Table Links Visibility */
-        [data-bs-theme="dark"] .table a:not(.btn) {
-            color: #6ea8fe;
-            text-decoration: none;
-        }
-        [data-bs-theme="dark"] .table a:not(.btn):hover {
-            color: #9ec5fe;
+        .navbar-nav .nav-link:hover {
+            color: #fff !important;
             text-decoration: underline;
         }
+
+        /* --- 4. TABLES (READABILITY) --- */
+        .table {
+            color: #e0e0e0 !important;
+            background-color: #2c3034 !important;
+            border-color: #495057 !important;
+            margin-top: 20px;
+        }
+        /* Table Headers */
+        .table thead th {
+            background-color: #1a1d20 !important;
+            color: #fff !important;
+            border-bottom: 2px solid #0d6efd !important; /* Blue line under header */
+            font-size: 1rem;
+            padding: 12px;
+        }
+        /* Cells */
+        .table td {
+            border-color: #444 !important;
+            vertical-align: middle;
+        }
+        /* Row hover highlight */
+        .table-hover tbody tr:hover td {
+            background-color: #3d444b !important;
+            color: white !important;
+        }
+
+        /* --- 5. ICONS AND ACTIONS --- */
+        /* Edit Icon (Pencil) */
+        .fa-pencil, .glyphicon-pencil {
+            color: #ffc107 !important; /* Yellow */
+            font-size: 1.2rem;
+        }
+        /* Delete Icon (Trash) */
+        .fa-trash, .glyphicon-trash {
+            color: #dc3545 !important; /* Red */
+            font-size: 1.2rem;
+            margin-left: 10px;
+        }
+        /* View Icon (Eye) */
+        .fa-eye, .glyphicon-eye-open {
+            color: #0dcaf0 !important; /* Cyan */
+            font-size: 1.2rem;
+            margin-right: 10px;
+        }
+
+        /* Table links (IDs, names) */
+        td a {
+            color: #6ea8fe !important;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        td a:hover {
+            text-decoration: underline;
+            color: #9ec5fe !important;
+        }
+
+        /* --- 6. CHECKBOXES --- */
+        input[type="checkbox"] {
+            accent-color: #0d6efd; /* Blue check mark */
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        /* --- 7. FORMS (CREATE / EDIT) --- */
+        .form-control, .select2-selection {
+            background-color: #212529 !important;
+            color: white !important;
+            border: 1px solid #495057 !important;
+        }
+        .form-control:focus {
+            background-color: #212529 !important;
+            color: white !important;
+            border-color: #0d6efd !important;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
     </style>
+{% endblock %}
+
+{% block page_body %}
+    <div class="container-fluid mt-3">
+        {{ super() }}
+    </div>
+{% endblock %}
+
+{% block brand %}
+    <a class="navbar-brand" href="{{ url_for('admin.index') }}">
+        <i class="fa fa-cogs"></i> TaskMaster Admin
+    </a>
+{% endblock %}
+
+{% block main_menu %}
+    <ul class="nav navbar-nav me-auto">
+        {{ super() }} </ul>
+
+    <ul class="nav navbar-nav ms-auto">
+        <li class="nav-item">
+            <a href="{{ url_for('main.index') }}" class="btn btn-outline-light d-flex align-items-center gap-2 px-3 my-1" style="border: 1px solid rgba(255,255,255,0.4);">
+                <i class="fa fa-arrow-left"></i>
+                <span>Back to Website</span>
+            </a>
+        </li>
+    </ul>
 {% endblock %}
