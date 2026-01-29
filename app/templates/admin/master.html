@@ -15,6 +15,11 @@
     </script>
 
     <style>
+        /* --- Global Dark Theme Overrides --- */
+        [data-bs-theme="dark"] body {
+            background-color: #212529;
+            color: #e0e0e0;
+        }
         [data-bs-theme="dark"] .navbar {
             background-color: #212529 !important;
             border-bottom: 1px solid #444;
@@ -23,9 +28,50 @@
         [data-bs-theme="dark"] .nav-link {
             color: #e0e0e0 !important;
         }
+
+        /* --- Table Styling for Dark Mode --- */
         [data-bs-theme="dark"] .table {
-            color: #dee2e6;
+            color: #e0e0e0;
+            background-color: #2c3034;
             border-color: #444;
+            --bs-table-bg: #2c3034;
+            --bs-table-color: #e0e0e0;
+            --bs-table-border-color: #444;
+        }
+
+        /* Table Headers */
+        [data-bs-theme="dark"] .table th {
+            background-color: #212529;
+            border-bottom-color: #444;
+            color: #fff;
+        }
+
+        /* Striped Rows Adjustment */
+        [data-bs-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) > * {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: #e0e0e0;
+            box-shadow: none;
+        }
+        [data-bs-theme="dark"] .table-striped > tbody > tr:nth-of-type(even) > * {
+             background-color: #2c3034;
+             color: #e0e0e0;
+             box-shadow: none;
+        }
+
+        /* Hover State */
+        [data-bs-theme="dark"] .table-hover > tbody > tr:hover > * {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        /* Table Links Visibility */
+        [data-bs-theme="dark"] .table a:not(.btn) {
+            color: #6ea8fe;
+            text-decoration: none;
+        }
+        [data-bs-theme="dark"] .table a:not(.btn):hover {
+            color: #9ec5fe;
+            text-decoration: underline;
         }
     </style>
 {% endblock %}
