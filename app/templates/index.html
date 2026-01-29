@@ -1,205 +1,341 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-9">
+<div class="row">
+    <div class="col-md-12">
+        <h2 class="mb-4">{{ t.tasks_title }}</h2>
 
-        <div class="card shadow-sm mb-4 border-0">
-            <div class="card-body p-4 rounded">
-                <form method="POST" enctype="multipart/form-data" class="row g-2 align-items-center">
-                    <div class="col-md-4">
-                        <input type="text" name="content" class="form-control form-control-lg" placeholder="{{ t.placeholder_task }}" required autocomplete="off">
-                    </div>
-                    <div class="col-md-3">
-                        <select name="category" class="form-select form-select-lg">
-                            <option value="cat_work">💼 {{ t.cat_work }}</option>
-                            <option value="cat_home">🏠 {{ t.cat_home }}</option>
-                            <option value="cat_study">🎓 {{ t.cat_study }}</option>
-                            <option value="cat_shopping">🛒 {{ t.cat_shopping }}</option>
-                            <option value="cat_important">🔥 {{ t.cat_important }}</option>
-                            <option value="cat_other">📁 {{ t.cat_other }}</option>
-                        </select>
-                    </div>
-
-                    <div class="col-md-4 d-flex gap-2">
-                        <input type="text"
-                               name="deadline"
-                               class="form-control form-control-lg text-secondary"
-                               placeholder="{{ t.placeholder_deadline }}"
-                               onfocus="(this.type='datetime-local')"
-                               onblur="if(!this.value)this.type='text'">
-
-                        <label class="btn btn-outline-secondary btn-lg" title="{{ t.attach_label }}">
-                            <i class="bi bi-paperclip"></i>
-                            <input type="file" name="files" multiple hidden>
-                        </label>
-                    </div>
-
-                    <div class="col-md-1">
-                        <button type="submit" class="btn btn-primary btn-lg w-100" title="{{ t.btn_add }}">
-                            <i class="bi bi-plus-lg"></i>
-                        </button>
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <form action="{{ url_for('main.index') }}" method="POST" enctype="multipart/form-data">
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <input type="text" name="content" class="form-control" placeholder="{{ t.placeholder_task }}" required>
+                        </div>
+                        <div class="col-md-3">
+                            <select name="category" class="form-select">
+                                <option value="work">{{ t.cat_work }}</option>
+                                <option value="home">{{ t.cat_home }}</option>
+                                <option value="study">{{ t.cat_study }}</option>
+                                <option value="shopping">{{ t.cat_shopping }}</option>
+                                <option value="important">{{ t.cat_important }}</option>
+                                <option value="other">{{ t.cat_other }}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="datetime-local" name="deadline" class="form-control">
+                        </div>
+                        <div class="col-md-12">
+                             <input type="file" name="files" class="form-control" multiple>
+                             <small class="text-muted">{{ t.file_hint }}</small>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="bi bi-plus-lg"></i> {{ t.btn_add }}
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
         </div>
 
-        <div class="card shadow-sm mb-3 border-0">
-            <div class="card-body py-2 px-3 bg-body-tertiary rounded d-flex flex-wrap align-items-center gap-3">
-                <div class="flex-grow-1 position-relative">
-                    <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
-                    <input type="text" id="searchInput" class="form-control ps-5" placeholder="{{ t.placeholder_search }}">
-                </div>
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-funnel text-muted me-2"></i>
-                    <select id="categoryFilter" class="form-select form-select-sm" style="width: 150px;">
-                        <option value="all">{{ t.filter_all_cats }}</option>
-                        <option value="cat_work">💼 {{ t.cat_work }}</option>
-                        <option value="cat_home">🏠 {{ t.cat_home }}</option>
-                        <option value="cat_study">🎓 {{ t.cat_study }}</option>
-                        <option value="cat_shopping">🛒 {{ t.cat_shopping }}</option>
-                        <option value="cat_important">🔥 {{ t.cat_important }}</option>
-                        <option value="cat_other">📁 {{ t.cat_other }}</option>
-                    </select>
-                </div>
-                <div class="form-check form-switch m-0">
-                    <input class="form-check-input" type="checkbox" id="hideCompletedFilter">
-                    <label class="form-check-label text-nowrap" for="hideCompletedFilter">{{ t.filter_hide }}</label>
-                </div>
-            </div>
-        </div>
-
-        <div class="list-group shadow-sm" id="taskList">
-
-            {% if not tasks %}
-                <div class="text-center py-5 text-muted">
-                    <i class="bi bi-calendar-check display-1"></i>
-                    <p class="mt-3 fs-5">{{ t.empty_state }}</p>
-                </div>
-            {% endif %}
-
+        <div class="list-group" id="taskList">
             {% for task in tasks %}
-            <div class="list-group-item p-3 task-item {% if task.completed %}list-group-item-secondary opacity-75{% endif %}"
-                 id="task-{{ task.id }}"
-                 data-task-id="{{ task.id }}"
-                 data-category="{{ task.category }}"
-                 data-completed="{{ 'true' if task.completed else 'false' }}"
-                 data-content="{{ task.content|lower }}">
+            <div class="list-group-item list-group-item-action d-flex align-items-start {{ 'list-group-item-secondary' if task.completed else '' }}"
+                 id="task-{{ task.id }}" data-id="{{ task.id }}">
 
-                <div class="d-flex justify-content-between align-items-start">
-                    <div class="d-flex align-items-center gap-3 w-100">
-
-                        <div class="drag-handle text-muted" style="cursor: grab; padding-right: 10px;">
-                            <i class="bi bi-grip-vertical fs-4"></i>
-                        </div>
-
-                        <i class="bi {% if task.completed %}bi-check-circle-fill text-success{% else %}bi-circle text-secondary{% endif %} fs-4 task-icon"
-                           style="cursor: pointer;"
-                           onclick="toggleTask({{ task.id }})"></i>
-
-                        <div class="w-100">
-                            <div class="d-flex justify-content-between align-items-center flex-wrap">
-                                <span class="fs-5 task-text me-2 fw-bold {% if task.completed %}text-decoration-line-through text-muted{% endif %}">
-                                    {{ task.content }}
-                                </span>
-
-                                <div class="d-flex gap-2">
-                                    {% if task.deadline and not task.completed %}
-                                        {% if task.deadline < now %}
-                                            <span class="badge bg-danger animate-pulse">
-                                                <i class="bi bi-fire"></i> {{ t.overdue_prefix }}: {{ task.deadline.strftime('%d.%m %H:%M') }}
-                                            </span>
-                                        {% else %}
-                                            <span class="badge bg-info text-dark">
-                                                <i class="bi bi-hourglass-split"></i> {{ t.deadline_prefix }} {{ task.deadline.strftime('%d.%m %H:%M') }}
-                                            </span>
-                                        {% endif %}
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            <div class="mt-1 d-flex align-items-center gap-2 flex-wrap">
-                                <span class="badge rounded-pill bg-secondary text-white border">
-                                    {{ t.get(task.category, task.category) }}
-                                </span>
-                                {% if not task.deadline %}
-                                <small class="text-muted" style="font-size: 0.8em;">
-                                    <i class="bi bi-clock"></i> {{ t.created_prefix }} {{ task.date_created.strftime('%d.%m') }}
-                                </small>
-                                {% endif %}
-
-                                {% if task.attachments %}
-                                    <div class="d-flex gap-1 ms-2">
-                                        {% for file in task.attachments %}
-                                            <a href="{{ url_for('static', filename='uploads/' + file.filename) }}"
-                                               target="_blank"
-                                               class="badge bg-body-secondary text-primary border text-decoration-none"
-                                               title="{{ file.original_name }}"
-                                               onclick="event.stopPropagation()">
-                                                <i class="bi bi-paperclip"></i>
-                                                {{ file.original_name[:10] }}{% if file.original_name|length > 10 %}...{% endif %}
-                                            </a>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    <a href="/delete/{{ task.id }}" class="btn btn-outline-danger border-0 rounded-circle ms-2 btn-sm">
-                        <i class="bi bi-trash"></i>
-                    </a>
+                <div class="me-3 mt-1">
+                    <input class="form-check-input fs-5" type="checkbox"
+                           onclick="toggleTask({{ task.id }})"
+                           {{ 'checked' if task.completed else '' }}>
                 </div>
 
-                {% if task.subtasks %}
-                <div class="mt-3">
-                    <div class="progress" style="height: 6px;">
+                <div class="flex-grow-1">
+                    <div class="d-flex w-100 justify-content-between align-items-center">
+                        <h5 class="mb-1 {{ 'text-decoration-line-through text-muted' if task.completed else '' }}" id="content-{{ task.id }}">
+                            {{ task.content }}
+                        </h5>
+                        <small class="text-muted">
+                            {% if task.category == 'work' %}<span class="badge bg-primary">{{ t.cat_work }}</span>
+                            {% elif task.category == 'home' %}<span class="badge bg-success">{{ t.cat_home }}</span>
+                            {% elif task.category == 'study' %}<span class="badge bg-info">{{ t.cat_study }}</span>
+                            {% elif task.category == 'shopping' %}<span class="badge bg-warning text-dark">{{ t.cat_shopping }}</span>
+                            {% elif task.category == 'important' %}<span class="badge bg-danger">{{ t.cat_important }}</span>
+                            {% else %}<span class="badge bg-secondary">{{ t.cat_other }}</span>{% endif %}
+                        </small>
+                    </div>
+
+                    {% if task.deadline %}
+                    <p class="mb-1 small {{ 'text-danger fw-bold' if task.deadline < now and not task.completed else 'text-muted' }}">
+                        <i class="bi bi-clock"></i> {{ task.deadline.strftime('%d.%m.%Y %H:%M') }}
+                    </p>
+                    {% endif %}
+
+                    {% if task.subtasks|length > 0 %}
+                    {% set progress = task.get_progress() %}
+                    <div class="progress mt-2" style="height: 5px;">
                         <div class="progress-bar bg-success" role="progressbar"
-                             style="width: {{ task.get_progress() }}%;"
+                             style="width: {{ progress }}%;"
+                             aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100"
                              id="progress-{{ task.id }}"></div>
                     </div>
-                </div>
-                {% endif %}
+                    {% endif %}
 
-                <div class="ms-4 mt-2 border-start border-3 ps-3 task-subtasks">
-                    {% for sub in task.subtasks %}
-                    <div class="d-flex align-items-center justify-content-between mb-1 subtask-item" id="subtask-{{ sub.id }}">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox"
-                                   onchange="toggleSubtask({{ sub.id }}, {{ task.id }})"
-                                   {% if sub.completed %}checked{% endif %}>
-                            <label class="form-check-label {% if sub.completed %}text-decoration-line-through text-muted{% endif %}">
+                    {% if task.subtasks %}
+                    <ul class="list-unstyled mt-2 ms-3 small">
+                        {% for sub in task.subtasks %}
+                        <li class="d-flex align-items-center mb-1">
+                            <input class="form-check-input me-2" type="checkbox"
+                                   onclick="toggleSubtask({{ sub.id }})"
+                                   {{ 'checked' if sub.completed else '' }}>
+                            <span class="{{ 'text-decoration-line-through text-muted' if sub.completed else '' }}" id="sub-content-{{ sub.id }}">
                                 {{ sub.content }}
-                            </label>
-                        </div>
-                        <a href="/delete_subtask/{{ sub.id }}" class="text-danger small text-decoration-none ms-2" style="opacity: 0.5;">
-                            <i class="bi bi-x-lg"></i>
-                        </a>
-                    </div>
-                    {% endfor %}
+                            </span>
+                            <a href="{{ url_for('main.delete_subtask', subtask_id=sub.id) }}" class="text-danger ms-2 text-decoration-none">×</a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
 
-                    <form action="/task/{{ task.id }}/add_subtask" method="POST" class="mt-2 d-flex gap-2">
-                        <input type="text" name="subtask_content" class="form-control form-control-sm border-0 bg-body-tertiary" placeholder="{{ t.add_step_btn }}" required>
-                        <button type="submit" class="btn btn-sm btn-outline-secondary border-0"><i class="bi bi-arrow-return-left"></i></button>
-                    </form>
+                    {% if task.attachments %}
+                    <div class="mt-2">
+                        {% for file in task.attachments %}
+                        <a href="{{ url_for('static', filename='uploads/' + file.filename) }}" class="btn btn-sm btn-outline-secondary me-1 mb-1" target="_blank">
+                            <i class="bi bi-paperclip"></i> {{ file.original_name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="mt-2 collapse" id="subtaskForm-{{ task.id }}">
+                        <form action="{{ url_for('main.add_subtask', task_id=task.id) }}" method="POST" class="d-flex">
+                            <input type="text" name="subtask_content" class="form-control form-control-sm me-2" placeholder="Subtask...">
+                            <button type="submit" class="btn btn-sm btn-primary">+</button>
+                        </form>
+                    </div>
                 </div>
 
+                <div class="ms-3 d-flex flex-column align-items-end">
+                    <button class="btn btn-sm btn-outline-secondary mb-1" onclick="openEditModal({{ task.id }})">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+
+                    <a href="{{ url_for('main.delete_task', id=task.id) }}" class="btn btn-sm btn-outline-danger mb-1" onclick="return confirm('{{ t.confirm_delete }}')">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                    <button class="btn btn-sm btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#subtaskForm-{{ task.id }}">
+                        <i class="bi bi-list-task"></i>
+                    </button>
+                </div>
             </div>
             {% endfor %}
         </div>
-
     </div>
 </div>
 
-<style>
-@keyframes pulse-red {
-    0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
-    70% { box-shadow: 0 0 0 5px rgba(220, 53, 69, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
-}
-.animate-pulse {
-    animation: pulse-red 2s infinite;
-}
-</style>
+<div class="modal fade" id="editTaskModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editTaskForm" enctype="multipart/form-data">
+                    <input type="hidden" id="editTaskId" name="task_id">
+
+                    <div class="mb-3">
+                        <label class="form-label">Task Name</label>
+                        <input type="text" class="form-control" id="editTaskContent" name="content" required>
+                    </div>
+
+                    <div class="mb-3">
+                         <label class="form-label">Description</label>
+                         <textarea class="form-control" id="editTaskDesc" name="description" rows="3"></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Category</label>
+                            <select class="form-select" id="editTaskCategory" name="category">
+                                <option value="work">{{ t.cat_work }}</option>
+                                <option value="home">{{ t.cat_home }}</option>
+                                <option value="study">{{ t.cat_study }}</option>
+                                <option value="shopping">{{ t.cat_shopping }}</option>
+                                <option value="important">{{ t.cat_important }}</option>
+                                <option value="other">{{ t.cat_other }}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Deadline</label>
+                            <input type="datetime-local" class="form-control" id="editTaskDeadline" name="deadline">
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <h6>Files</h6>
+                    <div id="editFilesList" class="mb-2"></div> <div class="mb-3">
+                        <label class="form-label text-muted small">Add new files:</label>
+                        <input type="file" class="form-control" name="new_files" multiple>
+                    </div>
+
+                    <hr>
+
+                    <h6>Subtasks</h6>
+                    <div id="editSubtasksList"></div> </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveTaskChanges()">Save All Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<script>
+    // --- SortableJS Logic ---
+    var el = document.getElementById('taskList');
+    var sortable = Sortable.create(el, {
+        animation: 150,
+        onEnd: function (evt) {
+            var itemEl = evt.item;
+            var order = sortable.toArray(); // Get array of task IDs
+            // Extract IDs from strings like "task-1" -> "1"
+            var taskIds = order.map(id => id.replace('task-', ''));
+
+            fetch('/reorder', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ task_ids: taskIds })
+            });
+        }
+    });
+
+    // --- Task Toggle Logic ---
+    function toggleTask(taskId) {
+        fetch(`/toggle/${taskId}`, { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                }
+            });
+    }
+
+    // --- Subtask Toggle Logic ---
+    function toggleSubtask(subId) {
+        fetch(`/toggle_subtask/${subId}`, { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                }
+            });
+    }
+
+    // --- NEW: EDIT MODAL LOGIC ---
+
+    // 1. Open Modal & Load Data
+    function openEditModal(taskId) {
+        // Clear previous data
+        document.getElementById('editFilesList').innerHTML = 'Loading...';
+        document.getElementById('editSubtasksList').innerHTML = '';
+
+        fetch(`/task/${taskId}/details`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) return alert(data.error);
+
+                // Fill form fields
+                document.getElementById('editTaskId').value = data.id;
+                document.getElementById('editTaskContent').value = data.content;
+                document.getElementById('editTaskDesc').value = data.description;
+                document.getElementById('editTaskCategory').value = data.category;
+                document.getElementById('editTaskDeadline').value = data.deadline;
+
+                // Render files with delete buttons
+                const filesContainer = document.getElementById('editFilesList');
+                filesContainer.innerHTML = '';
+                if (data.files.length === 0) {
+                    filesContainer.innerHTML = '<small class="text-muted">No files attached.</small>';
+                }
+                data.files.forEach(file => {
+                    filesContainer.innerHTML += `
+                        <div class="d-flex justify-content-between align-items-center mb-1 bg-light p-2 rounded" id="file-row-${file.id}">
+                            <a href="${file.url}" target="_blank" class="text-truncate" style="max-width: 300px;">${file.name}</a>
+                            <button type="button" class="btn btn-sm btn-danger py-0" onclick="deleteFile(${file.id})">❌</button>
+                        </div>
+                    `;
+                });
+
+                // Render subtasks with edit fields
+                const subtasksContainer = document.getElementById('editSubtasksList');
+                subtasksContainer.innerHTML = '';
+                if (data.subtasks.length === 0) {
+                    subtasksContainer.innerHTML = '<small class="text-muted">No subtasks.</small>';
+                }
+                data.subtasks.forEach(sub => {
+                    subtasksContainer.innerHTML += `
+                        <div class="input-group mb-2">
+                            <div class="input-group-text">
+                                <input class="form-check-input mt-0" type="checkbox" ${sub.completed ? 'checked' : ''} disabled>
+                            </div>
+                            <input type="text" class="form-control" value="${sub.content}" onchange="updateSubtaskText(${sub.id}, this.value)">
+                        </div>
+                    `;
+                });
+
+                // Show Modal using Bootstrap API
+                new bootstrap.Modal(document.getElementById('editTaskModal')).show();
+            });
+    }
+
+    // 2. Save Main Changes
+    function saveTaskChanges() {
+        const taskId = document.getElementById('editTaskId').value;
+        const form = document.getElementById('editTaskForm');
+        const formData = new FormData(form);
+
+        fetch(`/task/${taskId}/full_update`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload(); // Reload to see changes
+            } else {
+                alert('Error saving changes');
+            }
+        });
+    }
+
+    // 3. Delete File (Instant action)
+    function deleteFile(attachmentId) {
+        if (!confirm('Permanently delete this file?')) return;
+
+        fetch(`/attachment/${attachmentId}/delete`, { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById(`file-row-${attachmentId}`).remove();
+                } else {
+                    alert('Error deleting file');
+                }
+            });
+    }
+
+    // 4. Update Subtask Text (Triggered on input change)
+    function updateSubtaskText(subtaskId, newText) {
+        fetch(`/subtask/${subtaskId}/update_text`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ content: newText })
+        });
+    }
+</script>
 {% endblock %}

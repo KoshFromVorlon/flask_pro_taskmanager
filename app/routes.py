@@ -12,12 +12,9 @@ from .translations import translations
 main = Blueprint('main', __name__)
 
 
-# --- HELPER: GET TRANSLATION ---
 def get_text(key):
-    """Retrieves the translated text for the current language cookie."""
-    lang = request.cookies.get('lang', 'en')  # Default to English if not set
-    if lang not in translations:
-        lang = 'en'
+    lang = request.cookies.get('lang', 'ru')
+    if lang not in translations: lang = 'ru'
     return translations[lang].get(key, key)
 
 
@@ -36,7 +33,7 @@ def check_file_size(file):
     return file_length <= (settings.max_file_size_mb * 1024 * 1024)
 
 
-# --- SAVE FUNCTIONS ---
+# --- FILE SAVING ---
 def save_picture(form_picture):
     random_hex = secrets.token_hex(8)
     _, f_ext = os.path.splitext(form_picture.filename)
@@ -62,19 +59,16 @@ def save_attachment(file_obj):
     return secure_name, original_name
 
 
-# --- LANGUAGE SWITCHER ---
 @main.route('/set-language/<lang_code>')
 def set_language(lang_code):
-    if lang_code not in translations:
-        lang_code = 'en'
+    if lang_code not in translations: lang_code = 'ru'
     referrer = request.referrer or url_for('main.index')
     resp = make_response(redirect(referrer))
-    # Cookie lasts for 30 days
     resp.set_cookie('lang', lang_code, max_age=30 * 24 * 60 * 60)
     return resp
 
 
-# --- AUTHENTICATION ---
+# --- AUTH ---
 @main.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -82,12 +76,12 @@ def register():
         password = request.form.get('password')
 
         if User.query.filter_by(username=username).first():
-            print(f"⚠️ Registration attempt for existing user: {username}")
+            print(f"⚠️ Registration attempt for existing user: {username}")  # LOG
             flash(get_text('flash_user_exists'), 'error')
             return redirect(url_for('main.register'))
 
         user = User(username=username, password=generate_password_hash(password, method='scrypt'))
-        # First user becomes Admin automatically
+        # First user becomes admin
         if User.query.count() == 0:
             user.is_admin = True
 
@@ -95,7 +89,7 @@ def register():
         db.session.commit()
         login_user(user)
 
-        print(f"✅ New user registered: {username}")
+        print(f"✅ New user registered: {username}")  # LOG
         flash(get_text('flash_register_success'), 'success')
         return redirect(url_for('main.index'))
     return render_template('register.html')
@@ -110,11 +104,11 @@ def login():
 
         if user and check_password_hash(user.password, password):
             login_user(user)
-            print(f"🔑 User logged in: {user.username}")
+            print(f"🔑 User logged in: {user.username}")  # LOG
             flash(get_text('flash_login_success'), 'success')
             return redirect(url_for('main.index'))
 
-        print(f"❌ Failed login attempt: {username}")
+        print(f"❌ Failed login attempt: {username}")  # LOG
         flash(get_text('flash_login_error'), 'error')
     return render_template('login.html')
 
@@ -122,9 +116,8 @@ def login():
 @main.route('/logout')
 @login_required
 def logout():
-    print(f"🚪 User logged out: {current_user.username}")
+    print(f"🚪 User logged out: {current_user.username}")  # LOG
     logout_user()
-    flash(get_text('flash_logout'), 'success')
     return redirect(url_for('main.login'))
 
 
@@ -142,7 +135,7 @@ def profile():
                         filename = save_picture(file)
                         current_user.avatar = filename
                         db.session.commit()
-                        print(f"🖼️ User {current_user.username} updated avatar")
+                        print(f"🖼️ User {current_user.username} updated avatar")  # LOG
                         flash(get_text('flash_avatar_uploaded'), 'success')
                     except Exception as e:
                         print(f"⚠️ Avatar upload error: {e}")
@@ -159,7 +152,7 @@ def profile():
             else:
                 current_user.password = generate_password_hash(new_password, method='scrypt')
                 db.session.commit()
-                print(f"🔐 User {current_user.username} changed password")
+                print(f"🔐 User {current_user.username} changed password")  # LOG
                 flash(get_text('flash_pass_changed'), 'success')
 
         # 3. Update Username
@@ -172,7 +165,7 @@ def profile():
                 old_name = current_user.username
                 current_user.username = new_username
                 db.session.commit()
-                print(f"👤 Username changed: {old_name} -> {new_username}")
+                print(f"👤 Username changed: {old_name} -> {new_username}")  # LOG
                 flash(get_text('flash_profile_updated'), 'success')
 
         return redirect(url_for('main.profile'))
@@ -181,13 +174,13 @@ def profile():
     return render_template('profile.html', image_file=image_file)
 
 
-# --- TASK MANAGEMENT ---
+# --- TASKS ---
 @main.route('/', methods=['GET', 'POST'])
 @login_required
 def index():
     if request.method == 'POST':
         content = request.form.get('content')
-        category_key = request.form.get('category')  # Expecting key like 'cat_work'
+        category_key = request.form.get('category')
         deadline_str = request.form.get('deadline')
 
         if content:
@@ -198,12 +191,11 @@ def index():
                 except ValueError:
                     pass
 
-            # Save task with Category KEY (not translated text)
             new_task = Task(content=content, category=category_key, deadline=deadline_obj, author=current_user)
             db.session.add(new_task)
-            db.session.flush()
+            db.session.flush()  # Get task ID before commit
 
-            # Handle file attachments
+            # Handle files
             files = request.files.getlist('files')
             settings = Settings.get_settings()
 
@@ -228,14 +220,126 @@ def index():
                         flash(f"Error saving file: {e}", 'error')
 
             db.session.commit()
-            print(f"📝 {current_user.username} created task: '{content}' (+{files_count} files)")
+            print(f"📝 {current_user.username} created task: '{content}' (+{files_count} files)")  # LOG
             flash(get_text('flash_task_added'), 'success')
             return redirect(url_for('main.index'))
 
-    # Load tasks
     tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.position.asc(), Task.date_created.desc()).all()
     return render_template('index.html', tasks=tasks, now=datetime.now())
 
+
+# --- ADVANCED EDITING ROUTES (NEW) ---
+
+# 1. Get full task details for the modal
+@main.route('/task/<int:task_id>/details')
+@login_required
+def get_task_details(task_id):
+    task = Task.query.get_or_404(task_id)
+    if task.user_id != current_user.id:
+        return jsonify({'error': 'Access denied'}), 403
+
+    # Collect files
+    files = [{'id': f.id, 'name': f.original_name, 'url': url_for('static', filename='uploads/' + f.filename)} for f in
+             task.attachments]
+
+    # Collect subtasks
+    subtasks = [{'id': s.id, 'content': s.content, 'completed': s.completed} for s in task.subtasks]
+
+    # Description field check (assuming you might add it later to the model, handling it safely)
+    description = getattr(task, 'description', "")
+
+    return jsonify({
+        'id': task.id,
+        'content': task.content,
+        'category': task.category,
+        'description': description or "",
+        'deadline': task.deadline.strftime('%Y-%m-%dT%H:%M') if task.deadline else "",
+        'files': files,
+        'subtasks': subtasks
+    })
+
+
+# 2. Full update of the task (text, category, deadline, new files)
+@main.route('/task/<int:task_id>/full_update', methods=['POST'])
+@login_required
+def full_update_task(task_id):
+    task = Task.query.get_or_404(task_id)
+    if task.user_id != current_user.id:
+        return jsonify({'success': False}), 403
+
+    # Update basic fields
+    task.content = request.form.get('content')
+    task.category = request.form.get('category')
+
+    # Update description if it exists in model
+    if hasattr(task, 'description'):
+        task.description = request.form.get('description')
+
+    deadline_str = request.form.get('deadline')
+    if deadline_str:
+        try:
+            task.deadline = datetime.strptime(deadline_str, '%Y-%m-%dT%H:%M')
+        except ValueError:
+            pass
+    else:
+        task.deadline = None
+
+    # Add NEW files (existing ones are handled via delete route)
+    files = request.files.getlist('new_files')
+    settings = Settings.get_settings()
+
+    for file in files:
+        if file and file.filename != '':
+            if allowed_file(file.filename) and check_file_size(file):
+                try:
+                    secure_name, original_name = save_attachment(file)
+                    attachment = Attachment(filename=secure_name, original_name=original_name, parent_task=task)
+                    db.session.add(attachment)
+                except Exception as e:
+                    print(f"Error saving new file in edit mode: {e}")
+
+    db.session.commit()
+    print(f"✏️ Task {task_id} fully updated by {current_user.username}")  # LOG
+    return jsonify({'success': True})
+
+
+# 3. Delete a specific attachment
+@main.route('/attachment/<int:attachment_id>/delete', methods=['POST'])
+@login_required
+def delete_attachment(attachment_id):
+    attachment = Attachment.query.get_or_404(attachment_id)
+    if attachment.parent_task.user_id != current_user.id:
+        return jsonify({'success': False}), 403
+
+    # Remove file from disk
+    try:
+        file_path = os.path.join(current_app.root_path, 'static', 'uploads', attachment.filename)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+    except Exception as e:
+        print(f"Error deleting file from disk: {e}")
+
+    db.session.delete(attachment)
+    db.session.commit()
+    print(f"🗑️ Attachment {attachment_id} deleted")  # LOG
+    return jsonify({'success': True})
+
+
+# 4. Update subtask text
+@main.route('/subtask/<int:subtask_id>/update_text', methods=['POST'])
+@login_required
+def update_subtask_text(subtask_id):
+    subtask = Subtask.query.get_or_404(subtask_id)
+    if subtask.parent_task.user_id != current_user.id:
+        return jsonify({'success': False}), 403
+
+    data = request.get_json()
+    subtask.content = data.get('content')
+    db.session.commit()
+    return jsonify({'success': True})
+
+
+# --- END NEW ROUTES ---
 
 @main.route('/task/<int:task_id>/update', methods=['POST'])
 @login_required
@@ -251,7 +355,7 @@ def update_task(task_id):
     if category: task.category = category
 
     db.session.commit()
-    print(f"✏️ Task {task_id} updated")
+    print(f"✏️ Task {task_id} updated (quick edit)")  # LOG
     return redirect(url_for('main.index'))
 
 
@@ -279,7 +383,7 @@ def delete_task(id):
         title_backup = task.content
         db.session.delete(task)
         db.session.commit()
-        print(f"🗑️ {current_user.username} deleted task: '{title_backup}'")
+        print(f"🗑️ {current_user.username} deleted task: '{title_backup}'")  # LOG
         flash(get_text('flash_task_deleted'), 'success')
     return redirect(url_for('main.index'))
 
@@ -292,7 +396,7 @@ def toggle(id):
         task.completed = not task.completed
         db.session.commit()
         status = "completed" if task.completed else "active"
-        print(f"✅ Task '{task.content}' is now {status}")
+        print(f"✅ Task '{task.content}' is now {status}")  # LOG
         return jsonify({'success': True, 'completed': task.completed})
     return jsonify({'success': False})
 
@@ -306,7 +410,7 @@ def add_subtask(task_id):
         subtask = Subtask(content=content, parent_task=task)
         db.session.add(subtask)
         db.session.commit()
-        print(f"➕ Subtask added to task {task_id}")
+        print(f"➕ Subtask added to task {task_id}")  # LOG
     return redirect(url_for('main.index'))
 
 
@@ -332,7 +436,7 @@ def delete_subtask(subtask_id):
     return redirect(url_for('main.index'))
 
 
-# --- CALENDAR API ---
+# --- CALENDAR ---
 @main.route('/calendar')
 @login_required
 def calendar():
@@ -345,28 +449,27 @@ def get_events():
     tasks = Task.query.filter(Task.user_id == current_user.id, Task.deadline != None).all()
     events = []
 
-    # Map KEYS to Colors (Invariant of language)
+    # Category colors
     category_colors = {
-        'cat_work': '#0d6efd',  # Blue
-        'cat_home': '#198754',  # Green
-        'cat_study': '#0dcaf0',  # Cyan
-        'cat_shopping': '#ffc107',  # Yellow
-        'cat_important': '#dc3545',  # Red
-        'cat_other': '#6c757d'  # Grey
+        get_text('cat_work'): '#0d6efd',  # Blue
+        get_text('cat_home'): '#198754',  # Green
+        get_text('cat_study'): '#0dcaf0',  # Cyan
+        get_text('cat_shopping'): '#ffc107',  # Yellow
+        get_text('cat_important'): '#dc3545',  # Red
+        get_text('cat_other'): '#6c757d'  # Grey
     }
     light_colors = ['#ffc107', '#0dcaf0']
 
     for task in tasks:
-        # Use the key stored in DB (e.g., 'cat_work') to find color
         bg_color = category_colors.get(task.category, '#6c757d')
         text_color = '#000000' if bg_color in light_colors else '#ffffff'
 
-        # Overdue logic
+        # If overdue
         if task.deadline < datetime.now() and not task.completed:
             bg_color = '#dc3545'  # Red
             text_color = '#ffffff'
 
-        # Completed logic
+        # If completed
         if task.completed:
             bg_color = '#20c997'  # Teal
             text_color = '#ffffff'

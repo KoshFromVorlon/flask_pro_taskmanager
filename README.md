@@ -11,9 +11,12 @@
 and an interactive calendar. The application is built with **Flask**, uses **PostgreSQL** for data storage, and is 
 fully containerized with **Docker**.
 
-> 💡 **Demo:** [Link to deployment] | **Status:** Stable
+> 🚀 **Live App:** [Open TaskMaster Pro](https://taskmaster-app-f77s.onrender.com) | **Status:** 🟢 Online & Stable
 
 ## 🖼️ Screenshots
+
+### 🔐 Registration
+![Register](screenshots/register_screen.png)
 
 ### 📊 Dashboard
 ![Dashboard](screenshots/dashboard_screen.png)
@@ -21,8 +24,6 @@ fully containerized with **Docker**.
 ### 📅 Calendar View
 ![Calendar](screenshots/calendar_view.png)
 
-### 🔐 Registration
-![Register](screenshots/register_screen.png)
 
 ## ✨ Features
 
@@ -70,7 +71,7 @@ Run the test suite inside the container:
 docker-compose exec web coverage run -m pytest
 ```
 
-View the coverage report:
+5. View the coverage report:
 ```bash
 docker-compose exec web coverage report
 ```
