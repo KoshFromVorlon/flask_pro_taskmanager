@@ -1,14 +1,14 @@
-/* Плавный переход между темами */
+/* Smooth transition between themes (Light/Dark) */
 body, .card, .navbar, .form-control, .list-group-item, .dropdown-menu {
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
-/* ФИКС: В темной теме иконка календаря (в выборе даты) должна быть белой */
+/* FIX: Invert calendar icon color in dark mode (otherwise it stays black on black) */
 [data-bs-theme="dark"] ::-webkit-calendar-picker-indicator {
     filter: invert(1);
 }
 
-/* Небольшое улучшение для темного меню */
+/* Visual improvement for the Dark Navbar (slight transparency) */
 [data-bs-theme="dark"] .navbar {
     background-color: rgba(33, 37, 41, 0.95) !important;
 }

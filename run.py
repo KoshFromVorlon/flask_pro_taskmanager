@@ -1,9 +1,10 @@
 from app import create_app
-from flask_migrate import upgrade  # <--- Добавили импорт
+from flask_migrate import upgrade
 
 app = create_app()
 
-# <--- Добавляем блок автоматического обновления базы
+# Apply database migrations automatically on application startup
+# This ensures the database schema is always up-to-date when the server restarts
 with app.app_context():
     upgrade()
 

@@ -4,20 +4,21 @@
 <div class="row justify-content-center mt-4">
     <div class="col-md-8">
         <div class="card shadow border-0">
-            <div class="card-header pt-4 px-4">
-                <h3 class="fw-bold">{{ t.profile_header }}</h3>
+            <div class="card-header bg-transparent pt-4 px-4 border-0">
+                <h3 class="fw-bold mb-0">{{ t.profile_header }}</h3>
             </div>
 
             <div class="card-body p-4">
+
                 <div class="d-flex align-items-center mb-5 gap-4">
                     <div class="position-relative">
-                        <img src="{{ image_file }}" class="rounded-circle shadow-sm object-fit-cover" style="width: 120px; height: 120px;">
+                        <img src="{{ image_file }}" class="rounded-circle shadow-sm object-fit-cover" style="width: 120px; height: 120px;" alt="User Avatar">
                     </div>
 
                     <form method="POST" enctype="multipart/form-data" class="w-100">
                         <label class="form-label fw-bold">{{ t.avatar_label }}</label>
                         <div class="input-group">
-                            <input type="file" name="avatar" class="form-control" accept="image/*">
+                            <input type="file" name="avatar" class="form-control" accept="image/*" required>
                             <button class="btn btn-primary" type="submit">{{ t.upload_btn }}</button>
                         </div>
                         <small class="text-muted">JPG, PNG, GIF</small>
@@ -26,18 +27,33 @@
 
                 <hr class="my-4">
 
+                <form method="POST" class="mb-4">
+                    <div class="mb-3">
+                         <label class="form-label fw-bold">{{ t.login_label }}</label>
+                         <div class="input-group">
+                            <input type="text" name="username" class="form-control" value="{{ current_user.username }}" required autocomplete="off">
+                            <button class="btn btn-outline-primary" type="submit">{{ t.btn_update }}</button>
+                         </div>
+                    </div>
+                </form>
+
+                <hr class="my-4">
+
                 <h5 class="fw-bold mb-3">{{ t.change_pass_header }}</h5>
                 <form method="POST">
                     <div class="mb-3">
                         <label class="form-label">{{ t.old_pass }}</label>
-                        <input type="password" name="old_password" class="form-control">
+                        <input type="password" name="old_password" class="form-control" autocomplete="new-password">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">{{ t.new_pass }}</label>
-                        <input type="password" name="new_password" class="form-control">
+                        <input type="password" name="new_password" class="form-control" autocomplete="new-password">
                     </div>
-                    <button type="submit" class="btn btn-warning text-dark">{{ t.save_btn }}</button>
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-warning text-dark px-4">{{ t.btn_save }}</button>
+                    </div>
                 </form>
+
             </div>
         </div>
     </div>

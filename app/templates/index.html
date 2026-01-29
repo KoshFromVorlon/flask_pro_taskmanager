@@ -12,12 +12,12 @@
                     </div>
                     <div class="col-md-3">
                         <select name="category" class="form-select form-select-lg">
-                            <option value="{{ t.cat_work }}">💼 {{ t.cat_work }}</option>
-                            <option value="{{ t.cat_home }}">🏠 {{ t.cat_home }}</option>
-                            <option value="{{ t.cat_study }}">🎓 {{ t.cat_study }}</option>
-                            <option value="{{ t.cat_shopping }}">🛒 {{ t.cat_shopping }}</option>
-                            <option value="{{ t.cat_important }}">🔥 {{ t.cat_important }}</option>
-                            <option value="{{ t.cat_other }}">📁 {{ t.cat_other }}</option>
+                            <option value="cat_work">💼 {{ t.cat_work }}</option>
+                            <option value="cat_home">🏠 {{ t.cat_home }}</option>
+                            <option value="cat_study">🎓 {{ t.cat_study }}</option>
+                            <option value="cat_shopping">🛒 {{ t.cat_shopping }}</option>
+                            <option value="cat_important">🔥 {{ t.cat_important }}</option>
+                            <option value="cat_other">📁 {{ t.cat_other }}</option>
                         </select>
                     </div>
 
@@ -53,13 +53,13 @@
                 <div class="d-flex align-items-center">
                     <i class="bi bi-funnel text-muted me-2"></i>
                     <select id="categoryFilter" class="form-select form-select-sm" style="width: 150px;">
-                        <option value="all">{{ t.cat_all }}</option>
-                        <option value="{{ t.cat_work }}">💼 {{ t.cat_work }}</option>
-                        <option value="{{ t.cat_home }}">🏠 {{ t.cat_home }}</option>
-                        <option value="{{ t.cat_study }}">🎓 {{ t.cat_study }}</option>
-                        <option value="{{ t.cat_shopping }}">🛒 {{ t.cat_shopping }}</option>
-                        <option value="{{ t.cat_important }}">🔥 {{ t.cat_important }}</option>
-                        <option value="{{ t.cat_other }}">📁 {{ t.cat_other }}</option>
+                        <option value="all">{{ t.filter_all_cats }}</option>
+                        <option value="cat_work">💼 {{ t.cat_work }}</option>
+                        <option value="cat_home">🏠 {{ t.cat_home }}</option>
+                        <option value="cat_study">🎓 {{ t.cat_study }}</option>
+                        <option value="cat_shopping">🛒 {{ t.cat_shopping }}</option>
+                        <option value="cat_important">🔥 {{ t.cat_important }}</option>
+                        <option value="cat_other">📁 {{ t.cat_other }}</option>
                     </select>
                 </div>
                 <div class="form-check form-switch m-0">
@@ -120,7 +120,7 @@
 
                             <div class="mt-1 d-flex align-items-center gap-2 flex-wrap">
                                 <span class="badge rounded-pill bg-secondary text-white border">
-                                    {{ task.category }}
+                                    {{ t.get(task.category, task.category) }}
                                 </span>
                                 {% if not task.deadline %}
                                 <small class="text-muted" style="font-size: 0.8em;">
@@ -178,7 +178,7 @@
                     {% endfor %}
 
                     <form action="/task/{{ task.id }}/add_subtask" method="POST" class="mt-2 d-flex gap-2">
-                        <input type="text" name="subtask_content" class="form-control form-control-sm border-0 bg-body-tertiary" placeholder="+ Шаг" required>
+                        <input type="text" name="subtask_content" class="form-control form-control-sm border-0 bg-body-tertiary" placeholder="{{ t.add_step_btn }}" required>
                         <button type="submit" class="btn btn-sm btn-outline-secondary border-0"><i class="bi bi-arrow-return-left"></i></button>
                     </form>
                 </div>

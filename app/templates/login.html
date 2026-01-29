@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+
 {% block content %}
 <div class="row justify-content-center mt-5">
     <div class="col-md-4">
@@ -8,19 +9,19 @@
                 <form method="POST">
                     <div class="mb-3">
                         <label class="form-label">{{ t.login_label }}</label>
-                        <input type="text" name="username" class="form-control" required>
+                        <input type="text" name="username" class="form-control" required autofocus>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">{{ t.password_label }}</label>
                         <input type="password" name="password" class="form-control" required>
                     </div>
                     <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">{{ t.login_link }}</button>
+                        <button type="submit" class="btn btn-primary btn-lg">{{ t.login_link }}</button>
                     </div>
                 </form>
             </div>
-            <div class="card-footer text-center border-0 pb-3">
-                <small>{{ t.no_account }} <a href="/register">{{ t.register_link }}</a></small>
+            <div class="card-footer text-center border-0 pb-3 bg-white">
+                <small class="text-muted">{{ t.no_account }} <a href="/register" class="text-decoration-none">{{ t.register_link }}</a></small>
             </div>
         </div>
     </div>

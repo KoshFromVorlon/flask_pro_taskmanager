@@ -1,19 +1,19 @@
-# Виртуальное окружение
+# Virtual Environment
 venv/
 .venv/
 
-# Python кэш
+# Python Cache
 *.pyc
 __pycache__/
 
-# База данных
+# Database
 instance/
 site.db
 *.sqlite3
 
-# Загружаемые файлы
+# Uploaded files (ignore user content)
 app/static/uploads/*
 app/static/avatars/*
 
-# Исключение для дефолтной аватарки
+# Exception for default avatar (keep this file in git)
 !app/static/avatars/default.png

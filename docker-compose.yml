@@ -1,17 +1,17 @@
 services:
-  # Наш Flask-сайт
+  # The main Flask application
   web:
     build: .
     ports:
       - "5000:5000"
     volumes:
-      - .:/app  # "Зеркало": файлы на компе = файлы в контейнере
+      - .:/app  # Live sync: Local changes are reflected immediately in the container
     environment:
       - DATABASE_URL=postgresql://taskuser:taskpass@db:5432/taskdb
     depends_on:
       - db
 
-  # База данных PostgreSQL
+  # PostgreSQL Database Service
   db:
     image: postgres:15
     restart: always
@@ -20,7 +20,7 @@ services:
       POSTGRES_PASSWORD: taskpass
       POSTGRES_DB: taskdb
     volumes:
-      - postgres_data:/var/lib/postgresql/data # Сохраняет базу при перезагрузке
+      - postgres_data:/var/lib/postgresql/data # Persist data between restarts
     ports:
       - "5432:5432"
 

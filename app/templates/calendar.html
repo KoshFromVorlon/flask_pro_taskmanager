@@ -18,24 +18,25 @@
         var calendarEl = document.getElementById('calendar');
         var calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
+            // Set locale dynamically based on the user's selected language (e.g., 'en', 'ru', 'ua')
             locale: '{{ lang }}',
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
                 right: 'dayGridMonth,timeGridWeek,listWeek'
             },
-            events: '/api/events',
+            events: '/api/events', // Fetch events from our new JSON API
             eventTimeFormat: {
                 hour: '2-digit',
                 minute: '2-digit',
                 meridiem: false
             },
             height: 'auto',
-            dayMaxEvents: true, // Добавляет ссылку "+2 more", если задач слишком много
+            dayMaxEvents: true, // Show "+2 more" link if too many events in one day
 
-            // --- НОВОЕ: Всплывающие подсказки (Tooltips) ---
+            // --- Tooltips Initialization ---
             eventDidMount: function(info) {
-                // Инициализация Bootstrap Tooltip для каждого события
+                // Initialize Bootstrap Tooltip for every event element
                 var tooltip = new bootstrap.Tooltip(info.el, {
                     title: info.event.title,
                     placement: 'top',
@@ -49,7 +50,9 @@
 </script>
 
 <style>
-    /* --- СТИЛИ ДЛЯ ТЕМНОЙ ТЕМЫ --- */
+    /* --- DARK MODE STYLES FOR CALENDAR --- */
+    /* FullCalendar doesn't support Bootstrap dark mode automatically, so we override manually */
+
     [data-bs-theme="dark"] .fc-theme-standard .fc-scrollgrid {
         border-color: #444;
     }
@@ -68,18 +71,18 @@
         background-color: rgba(255, 255, 255, 0.05);
     }
 
-    /* --- НОВОЕ: УЛУЧШЕНИЕ ОТОБРАЖЕНИЯ ЗАДАЧ --- */
+    /* --- EVENT STYLING IMPROVEMENTS --- */
 
-    /* 1. Делаем события чуть просторнее */
+    /* 1. Make events slightly more spacious */
     .fc-event {
         cursor: pointer;
         padding: 2px;
         font-size: 0.9em;
     }
 
-    /* 2. Разрешаем перенос текста (чтобы не обрезался) */
+    /* 2. Allow text wrapping (so long titles aren't cut off) */
     .fc-event-title {
-        white-space: normal !important; /* Разрешаем перенос строк */
+        white-space: normal !important;
         overflow: hidden;
         text-overflow: ellipsis;
     }

@@ -12,13 +12,16 @@ from .translations import translations
 main = Blueprint('main', __name__)
 
 
+# --- HELPER: GET TRANSLATION ---
 def get_text(key):
-    lang = request.cookies.get('lang', 'ru')
-    if lang not in translations: lang = 'ru'
+    """Retrieves the translated text for the current language cookie."""
+    lang = request.cookies.get('lang', 'en')  # Default to English if not set
+    if lang not in translations:
+        lang = 'en'
     return translations[lang].get(key, key)
 
 
-# --- ПРОВЕРКИ ФАЙЛОВ ---
+# --- FILE CHECKS ---
 def allowed_file(filename):
     settings = Settings.get_settings()
     allowed = set(ext.strip().lower() for ext in settings.allowed_extensions.split(','))
@@ -33,7 +36,7 @@ def check_file_size(file):
     return file_length <= (settings.max_file_size_mb * 1024 * 1024)
 
 
-# --- СОХРАНЕНИЕ ФАЙЛОВ ---
+# --- SAVE FUNCTIONS ---
 def save_picture(form_picture):
     random_hex = secrets.token_hex(8)
     _, f_ext = os.path.splitext(form_picture.filename)
@@ -59,16 +62,19 @@ def save_attachment(file_obj):
     return secure_name, original_name
 
 
+# --- LANGUAGE SWITCHER ---
 @main.route('/set-language/<lang_code>')
 def set_language(lang_code):
-    if lang_code not in translations: lang_code = 'ru'
+    if lang_code not in translations:
+        lang_code = 'en'
     referrer = request.referrer or url_for('main.index')
     resp = make_response(redirect(referrer))
+    # Cookie lasts for 30 days
     resp.set_cookie('lang', lang_code, max_age=30 * 24 * 60 * 60)
     return resp
 
 
-# --- AUTH ---
+# --- AUTHENTICATION ---
 @main.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -76,11 +82,12 @@ def register():
         password = request.form.get('password')
 
         if User.query.filter_by(username=username).first():
-            print(f"⚠️ Попытка регистрации существующего юзера: {username}")  # ЛОГ
+            print(f"⚠️ Registration attempt for existing user: {username}")
             flash(get_text('flash_user_exists'), 'error')
             return redirect(url_for('main.register'))
 
         user = User(username=username, password=generate_password_hash(password, method='scrypt'))
+        # First user becomes Admin automatically
         if User.query.count() == 0:
             user.is_admin = True
 
@@ -88,7 +95,7 @@ def register():
         db.session.commit()
         login_user(user)
 
-        print(f"✅ Новый пользователь зарегистрирован: {username}")  # ЛОГ
+        print(f"✅ New user registered: {username}")
         flash(get_text('flash_register_success'), 'success')
         return redirect(url_for('main.index'))
     return render_template('register.html')
@@ -103,11 +110,11 @@ def login():
 
         if user and check_password_hash(user.password, password):
             login_user(user)
-            print(f"🔑 Пользователь вошел: {user.username}")  # ЛОГ
+            print(f"🔑 User logged in: {user.username}")
             flash(get_text('flash_login_success'), 'success')
             return redirect(url_for('main.index'))
 
-        print(f"❌ Неудачный вход: {username}")  # ЛОГ
+        print(f"❌ Failed login attempt: {username}")
         flash(get_text('flash_login_error'), 'error')
     return render_template('login.html')
 
@@ -115,8 +122,9 @@ def login():
 @main.route('/logout')
 @login_required
 def logout():
-    print(f"🚪 Выход пользователя: {current_user.username}")  # ЛОГ
+    print(f"🚪 User logged out: {current_user.username}")
     logout_user()
+    flash(get_text('flash_logout'), 'success')
     return redirect(url_for('main.login'))
 
 
@@ -124,7 +132,7 @@ def logout():
 @login_required
 def profile():
     if request.method == 'POST':
-        # 1. Обновление Аватарки
+        # 1. Update Avatar
         if 'avatar' in request.files:
             file = request.files['avatar']
             if file and file.filename != '':
@@ -134,15 +142,15 @@ def profile():
                         filename = save_picture(file)
                         current_user.avatar = filename
                         db.session.commit()
-                        print(f"🖼️ Пользователь {current_user.username} обновил аватарку")  # ЛОГ
+                        print(f"🖼️ User {current_user.username} updated avatar")
                         flash(get_text('flash_avatar_uploaded'), 'success')
                     except Exception as e:
-                        print(f"⚠️ Ошибка загрузки аватара: {e}")
+                        print(f"⚠️ Avatar upload error: {e}")
                         flash(f"Error: {e}", 'error')
                 else:
                     flash(get_text('flash_invalid_file'), 'error')
 
-        # 2. Обновление пароля
+        # 2. Update Password
         if 'old_password' in request.form and request.form['old_password']:
             old_password = request.form.get('old_password')
             new_password = request.form.get('new_password')
@@ -151,10 +159,10 @@ def profile():
             else:
                 current_user.password = generate_password_hash(new_password, method='scrypt')
                 db.session.commit()
-                print(f"🔐 Пользователь {current_user.username} сменил пароль")  # ЛОГ
+                print(f"🔐 User {current_user.username} changed password")
                 flash(get_text('flash_pass_changed'), 'success')
 
-        # 3. Обновление имени пользователя
+        # 3. Update Username
         new_username = request.form.get('username')
         if new_username and new_username != current_user.username:
             existing_user = User.query.filter_by(username=new_username).first()
@@ -164,7 +172,7 @@ def profile():
                 old_name = current_user.username
                 current_user.username = new_username
                 db.session.commit()
-                print(f"👤 Смена имени: {old_name} -> {new_username}")  # ЛОГ
+                print(f"👤 Username changed: {old_name} -> {new_username}")
                 flash(get_text('flash_profile_updated'), 'success')
 
         return redirect(url_for('main.profile'))
@@ -173,13 +181,13 @@ def profile():
     return render_template('profile.html', image_file=image_file)
 
 
-# --- TASKS ---
+# --- TASK MANAGEMENT ---
 @main.route('/', methods=['GET', 'POST'])
 @login_required
 def index():
     if request.method == 'POST':
         content = request.form.get('content')
-        category_key = request.form.get('category')
+        category_key = request.form.get('category')  # Expecting key like 'cat_work'
         deadline_str = request.form.get('deadline')
 
         if content:
@@ -190,11 +198,12 @@ def index():
                 except ValueError:
                     pass
 
+            # Save task with Category KEY (not translated text)
             new_task = Task(content=content, category=category_key, deadline=deadline_obj, author=current_user)
             db.session.add(new_task)
-            db.session.flush()  # Получаем ID задачи до коммита
+            db.session.flush()
 
-            # Обработка файлов
+            # Handle file attachments
             files = request.files.getlist('files')
             settings = Settings.get_settings()
 
@@ -215,14 +224,15 @@ def index():
                         db.session.add(attachment)
                         files_count += 1
                     except Exception as e:
-                        print(f"⚠️ Ошибка сохранения файла: {e}")
+                        print(f"⚠️ File save error: {e}")
                         flash(f"Error saving file: {e}", 'error')
 
             db.session.commit()
-            print(f"📝 {current_user.username} создал задачу: '{content}' (+{files_count} файлов)")  # ЛОГ
+            print(f"📝 {current_user.username} created task: '{content}' (+{files_count} files)")
             flash(get_text('flash_task_added'), 'success')
             return redirect(url_for('main.index'))
 
+    # Load tasks
     tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.position.asc(), Task.date_created.desc()).all()
     return render_template('index.html', tasks=tasks, now=datetime.now())
 
@@ -241,7 +251,7 @@ def update_task(task_id):
     if category: task.category = category
 
     db.session.commit()
-    print(f"✏️ Задачу {task_id} обновили")  # ЛОГ
+    print(f"✏️ Task {task_id} updated")
     return redirect(url_for('main.index'))
 
 
@@ -269,7 +279,7 @@ def delete_task(id):
         title_backup = task.content
         db.session.delete(task)
         db.session.commit()
-        print(f"🗑️ {current_user.username} удалил задачу: '{title_backup}'")  # ЛОГ
+        print(f"🗑️ {current_user.username} deleted task: '{title_backup}'")
         flash(get_text('flash_task_deleted'), 'success')
     return redirect(url_for('main.index'))
 
@@ -281,8 +291,8 @@ def toggle(id):
     if task.user_id == current_user.id:
         task.completed = not task.completed
         db.session.commit()
-        status = "выполнена" if task.completed else "активна"
-        print(f"✅ Задача '{task.content}' теперь {status}")  # ЛОГ
+        status = "completed" if task.completed else "active"
+        print(f"✅ Task '{task.content}' is now {status}")
         return jsonify({'success': True, 'completed': task.completed})
     return jsonify({'success': False})
 
@@ -296,7 +306,7 @@ def add_subtask(task_id):
         subtask = Subtask(content=content, parent_task=task)
         db.session.add(subtask)
         db.session.commit()
-        print(f"➕ Подзадача добавлена к задаче {task_id}")  # ЛОГ
+        print(f"➕ Subtask added to task {task_id}")
     return redirect(url_for('main.index'))
 
 
@@ -322,7 +332,7 @@ def delete_subtask(subtask_id):
     return redirect(url_for('main.index'))
 
 
-# --- CALENDAR ---
+# --- CALENDAR API ---
 @main.route('/calendar')
 @login_required
 def calendar():
@@ -335,27 +345,28 @@ def get_events():
     tasks = Task.query.filter(Task.user_id == current_user.id, Task.deadline != None).all()
     events = []
 
-    # Цвета для категорий
+    # Map KEYS to Colors (Invariant of language)
     category_colors = {
-        get_text('cat_work'): '#0d6efd',  # Blue
-        get_text('cat_home'): '#198754',  # Green
-        get_text('cat_study'): '#0dcaf0',  # Cyan
-        get_text('cat_shopping'): '#ffc107',  # Yellow
-        get_text('cat_important'): '#dc3545',  # Red
-        get_text('cat_other'): '#6c757d'  # Grey
+        'cat_work': '#0d6efd',  # Blue
+        'cat_home': '#198754',  # Green
+        'cat_study': '#0dcaf0',  # Cyan
+        'cat_shopping': '#ffc107',  # Yellow
+        'cat_important': '#dc3545',  # Red
+        'cat_other': '#6c757d'  # Grey
     }
     light_colors = ['#ffc107', '#0dcaf0']
 
     for task in tasks:
+        # Use the key stored in DB (e.g., 'cat_work') to find color
         bg_color = category_colors.get(task.category, '#6c757d')
         text_color = '#000000' if bg_color in light_colors else '#ffffff'
 
-        # Если просрочено
+        # Overdue logic
         if task.deadline < datetime.now() and not task.completed:
             bg_color = '#dc3545'  # Red
             text_color = '#ffffff'
 
-        # Если выполнено
+        # Completed logic
         if task.completed:
             bg_color = '#20c997'  # Teal
             text_color = '#ffffff'

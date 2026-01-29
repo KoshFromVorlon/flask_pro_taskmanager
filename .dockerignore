@@ -1,8 +1,34 @@
+# --- GIT & DOCKER ---
 .git
-.venv
-venv
-__pycache__
+.gitignore
+.dockerignore
+
+# --- PYTHON VIRTUAL ENV ---
+# We install dependencies inside the container, so we don't need local venv
+venv/
+.venv/
+
+# --- PYTHON CACHE ---
+# Don't copy local bytecode to the container
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# --- DATABASE ---
+# Don't copy local database to production container
+instance/
 site.db
-app/static/avatars/*
-!app/static/avatars/default.png
+*.sqlite3
+
+# --- UPLOADED FILES ---
+# Don't bake user content into the image
 app/static/uploads/*
+app/static/avatars/*
+
+# --- EXCEPTIONS ---
+# We MUST copy the default avatar, otherwise the app will crash for new users
+!app/static/avatars/default.png
+
+# --- SECURITY ---
+# Never copy local .env files into the image (pass secrets via environment variables)
+.env

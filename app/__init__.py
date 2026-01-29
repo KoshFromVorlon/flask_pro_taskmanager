@@ -13,7 +13,7 @@ migrate = Migrate()
 login_manager = LoginManager()
 
 
-# --- НАСТРОЙКИ АДМИНКИ ---
+# --- ADMIN PANEL CONFIGURATION ---
 class SecureModelView(ModelView):
     def is_accessible(self):
         return current_user.is_authenticated and current_user.is_admin
@@ -41,7 +41,7 @@ def create_app():
     app.config.from_object(Config)
 
     db.init_app(app)
-    # ИНИЦИАЛИЗАЦИЯ MIGRATE
+    # Initialize Migration engine
     migrate.init_app(app, db)
 
     login_manager.init_app(app)
@@ -49,24 +49,28 @@ def create_app():
 
     from .models import User, Task, Settings
 
+    # Initialize Admin Panel
     admin = Admin(app, name='TaskManager Admin')
 
-    admin.add_view(UserView(User, db.session, name='Пользователи'))
-    admin.add_view(TaskView(Task, db.session, name='Задачи'))
-    admin.add_view(SettingsView(Settings, db.session, name='Настройки сайта'))
+    # Add Views (using English names)
+    admin.add_view(UserView(User, db.session, name='Users'))
+    admin.add_view(TaskView(Task, db.session, name='Tasks'))
+    admin.add_view(SettingsView(Settings, db.session, name='Site Settings'))
 
     from .routes import main
     app.register_blueprint(main)
 
+    # Inject translations into all templates
     @app.context_processor
     def inject_language():
-        lang_code = request.cookies.get('lang', 'ru')
+        # Default to 'en' if no cookie is set
+        lang_code = request.cookies.get('lang', 'en')
         if lang_code not in translations:
-            lang_code = 'ru'
+            lang_code = 'en'
         return dict(lang=lang_code, t=translations[lang_code])
 
     with app.app_context():
-        # create_default_admin() — УДАЛЕНО: больше не создаем дефолтного админа
+        # create_default_admin() — REMOVED: default admin is no longer created automatically
         create_default_settings()
 
     @login_manager.user_loader
@@ -79,7 +83,8 @@ def create_app():
 def create_default_settings():
     from .models import Settings
     from sqlalchemy import inspect
-    # Проверка, чтобы не падало при первом запуске (когда таблиц еще нет)
+
+    # Check if table exists to prevent crash on first run (before migrations)
     inspector = inspect(db.engine)
     if inspector.has_table("settings"):
         if not Settings.query.first():

@@ -1,29 +1,29 @@
 name: Flask Tests CI
 
-# Запускать тесты при каждом пуше или пулл-реквесте
+# Trigger workflow on every push or pull request
 on: [push, pull_request]
 
 jobs:
   test:
-    runs-on: ubuntu-latest  # Виртуальная машина на Linux
+    runs-on: ubuntu-latest  # Use the latest Ubuntu Linux runner
 
     steps:
-    # 1. Скачиваем ваш код
+    # 1. Checkout the repository code
     - name: Check out code
       uses: actions/checkout@v4
 
-    # 2. Устанавливаем Python 3.9
+    # 2. Set up Python 3.9 environment
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.9'
 
-    # 3. Устанавливаем зависимости
+    # 3. Install Python dependencies
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    # 4. Запускаем тесты (через python -m, как мы выяснили)
+    # 4. Run the test suite (using python -m to resolve imports correctly)
     - name: Run Tests
       run: python -m pytest

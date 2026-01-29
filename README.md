@@ -7,108 +7,112 @@
 ![Coverage](https://img.shields.io/badge/coverage-77%25-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
-**TaskMaster Pro** — это современный веб-менеджер задач с поддержкой категорий, подзадач, вложений и интерактивного
-календаря. Приложение разработано на **Flask**, использует **PostgreSQL** для хранения данных и полностью упаковано в *
-*Docker**.
+**TaskMaster Pro** is a modern, feature-rich web task manager with support for categories, subtasks, file attachments, 
+and an interactive calendar. The application is built with **Flask**, uses **PostgreSQL** for data storage, and is 
+fully containerized with **Docker**.
 
-> 💡 **Демо:** [Ссылка на деплой (если есть)] | **Статус:** Stable
+> 💡 **Demo:** [Link to deployment] | **Status:** Stable
 
-## 🖼️ Скриншоты
+## 🖼️ Screenshots
 
-### 📊 Главная панель
+### 📊 Dashboard
 ![Dashboard](screenshots/dashboard_screen.png)
 
-### 📅 Календарь
+### 📅 Calendar View
 ![Calendar](screenshots/calendar_view.png)
 
-### 🔐 Экран регистрации
+### 🔐 Registration
 ![Register](screenshots/register_screen.png)
-## ✨ Функциональность
 
-- ✅ **CRUD Задач:** Полный цикл управления задачами (создание, чтение, обновление, удаление).
-- 📂 **Категории:** Цветовая маркировка (Работа, Дом, Учеба, Покупки и др.).
-- 📅 **Интерактивный календарь:** Визуализация дедлайнов (FullCalendar).
-- 📎 **Вложения:** Загрузка файлов и изображений к задачам.
-- 🏗️ **Подзадачи:** Разбиение сложных задач на мелкие этапы с прогресс-баром.
-- 👤 **Личный кабинет:** Смена аватара, имени и пароля.
-- 🌐 **Локализация:** Поддержка русского и английского языков.
-- 🐳 **Docker:** Развертывание одной командой.
+## ✨ Features
 
-## 🛠️ Технический стек
+- ✅ **Task Management:** Full CRUD cycle (Create, Read, Update, Delete).
+- 📂 **Categories:** Color-coded categories (Work, Home, Study, Shopping, etc.).
+- 📅 **Interactive Calendar:** Visual deadline tracking powered by FullCalendar.
+- 📎 **Attachments:** Upload files and images to specific tasks.
+- 🏗️ **Subtasks:** Break down complex tasks into smaller steps with a progress bar.
+- 👤 **User Profile:** Manage avatar, username, and password securely.
+- 🌐 **Localization:** Multi-language support (**English, Russian, Ukrainian**).
+- 🐳 **Docker:** One-command deployment.
+
+## 🛠️ Tech Stack
 
 * **Backend:** Python 3.9, Flask, SQLAlchemy, Flask-Login, Flask-Migrate.
-* **Database:** PostgreSQL (Prod), SQLite (Test/Dev).
-* **Frontend:** Bootstrap 5, Jinja2, JavaScript (Fetch API).
-* **Testing:** Pytest, Coverage (Покрытие тестами 77%).
+* **Database:** PostgreSQL (Production), SQLite (Dev/Test).
+* **Frontend:** Bootstrap 5, Jinja2, JavaScript (Fetch API, SortableJS).
+* **Testing:** Pytest, Coverage (77% test coverage).
 * **DevOps:** Docker, Docker Compose, GitHub Actions.
 
-## 🚀 Запуск проекта (Docker)
+## 🚀 Getting Started (Docker)
 
-Это рекомендуемый способ запуска. Вам понадобятся установленные **Docker** и **Docker Compose**.
+This is the recommended way to run the application. You need **Docker** and **Docker Compose** installed.
 
-### 1. Клонирование репозитория
+1. Clone the repository:
 ```bash
 git clone [https://github.com/KoshFromVorlon/flask_pro_taskmanager.git](https://github.com/KoshFromVorlon/flask_pro_taskmanager.git)
 cd flask_pro_taskmanager
 ```
 
-Запуск контейнеров:
+2. Run the application:
+Start the containers (Web + DB):
 ```bash
 docker-compose up --build
 ```
-Применение миграций:
+3. Database Migrations
+Migrations run automatically on startup (run.py), but you can run them manually if needed:
 ```bash
 docker-compose exec web flask db upgrade
 ```
 
-Запуск тестов внутри контейнера:
+4. Running Tests
+Run the test suite inside the container:
 ```bash
 docker-compose exec web coverage run -m pytest
 ```
 
-Просмотр отчета о покрытии (Coverage Report):
+View the coverage report:
 ```bash
 docker-compose exec web coverage report
 ```
 
-## 📂 Структура проекта:
+## 📂 Project Structure
 ```text
 flask_pro_taskmanager/
 ├── .github/
 │   └── workflows/
-│       └── tests.yml    # Конфигурация CI/CD (GitHub Actions)
+│       └── tests.yml    # CI/CD Configuration (GitHub Actions)
 ├── app/
 │   ├── static/
-│   │   ├── avatars/     # Загруженные аватарки пользователей
-│   │   ├── uploads/     # Файлы, прикрепленные к задачам
-│   │   ├── script.js    # Логика Drag-and-Drop и календаря
-│   │   └── style.css    # Стили оформления
+│   │   ├── avatars/     # User uploaded avatars
+│   │   ├── uploads/     # Task attachments
+│   │   ├── script.js    # Frontend logic (Drag-and-Drop, Calendar, API)
+│   │   └── style.css    # Custom styles
 │   ├── templates/
-│   │   ├── admin/       # Шаблоны админ-панели
-│   │   ├── base.html    # Базовый макет (навбар, футер)
+│   │   ├── admin/       # Flask-Admin templates
+│   │   ├── base.html    # Base layout (Navbar, Flash messages)
 │   │   ├── calendar.html
-│   │   ├── index.html   # Главная страница (список задач)
+│   │   ├── index.html   # Main dashboard (Task list)
 │   │   ├── login.html
-│   │   ├── profile.html
+│   │   ├── profile.html # User settings (Avatar, Password, Username)
 │   │   └── register.html
-│   ├── __init__.py      # Инициализация приложения (App Factory)
-│   ├── models.py        # Модели БД (User, Task, Subtask, Attachment)
-│   ├── routes.py        # Основная логика и маршруты
-│   └── translations.py  # Словарь для мультиязычности (RU/EN)
-├── migrations/          # Версии миграций базы данных (Alembic)
-├── tests/               # Пакет тестов (Pytest)
-│   ├── conftest.py      # Фикстуры и настройка тестовой БД
-│   ├── test_api.py      # Тесты API календаря
-│   ├── test_extended.py # Тесты профиля и редких кейсов
-│   ├── test_models.py   # Тесты моделей данных
-│   ├── test_routes.py   # Тесты основных страниц
-│   ├── test_security.py # Тесты прав доступа
-│   └── test_tasks.py    # Тесты логики задач
-├── .dockerignore        # Исключения для Docker-сборки
-├── config.py            # Конфигурация переменных окружения
-├── Dockerfile           # Инструкция сборки контейнера приложения
-├── docker-compose.yml   # Оркестрация сервисов (Web + Postgres)
-├── LICENSE              # Лицензия MIT
-├── requirements.txt     # Список зависимостей Python
-└── run.py               # Точка входа в приложение
+│   ├── __init__.py      # App Factory & Initialization
+│   ├── models.py        # Database Models (User, Task, Subtask, Attachment)
+│   ├── routes.py        # Main application logic & endpoints
+│   └── translations.py  # Dictionary for I18n (EN/RU/UA)
+├── migrations/          # Database migration versions (Alembic)
+├── tests/               # Test Suite (Pytest)
+│   ├── conftest.py      # Fixtures & Test DB config
+│   ├── test_api.py      # Calendar API tests
+│   ├── test_extended.py # Profile & Edge cases
+│   ├── test_models.py   # DB Model tests
+│   ├── test_routes.py   # Route status checks
+│   ├── test_security.py # Auth & Permission tests
+│   └── test_tasks.py    # Task logic tests
+├── .dockerignore        # Docker build exclusions
+├── config.py            # Environment configuration
+├── Dockerfile           # Application container build instructions
+├── docker-compose.yml   # Service orchestration
+├── LICENSE              # MIT License
+├── requirements.txt     # Python dependencies
+└── run.py               # Entry point
 ```

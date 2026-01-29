@@ -1,5 +1,11 @@
+/**
+ * Main Client-Side Logic
+ * Handles: Auto-hiding alerts, Theme switching, Drag & Drop, Filtering, and AJAX toggles.
+ */
+
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Авто-скрытие уведомлений
+
+    // 1. Auto-hide Flash Messages
     const alerts = document.querySelectorAll('.alert-dismissible');
     alerts.forEach(alert => {
         setTimeout(() => {
@@ -7,29 +13,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 const bsAlert = new bootstrap.Alert(alert);
                 bsAlert.close();
             }
-        }, 4000);
+        }, 4000); // 4 seconds delay
     });
 
-    // 2. Инициализация темы
+    // 2. Initialize Theme (Dark/Light)
     const storedTheme = localStorage.getItem('theme');
     const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     let activeTheme = storedTheme || (systemPrefersDark ? 'dark' : 'light');
     setTheme(activeTheme);
 
-    // 3. DRAG AND DROP (Сортировка)
+    // 3. Drag and Drop (SortableJS)
     const taskList = document.getElementById('taskList');
     if (taskList) {
         new Sortable(taskList, {
-            animation: 150, // Плавность анимации
-            handle: '.drag-handle', // Тянуть только за ручку
-            ghostClass: 'bg-body-secondary', // Класс тени при перетаскивании
+            animation: 150, // Smooth animation
+            handle: '.drag-handle', // Drag using this specific icon only
+            ghostClass: 'bg-body-secondary', // Class applied to the placeholder
 
             onEnd: function (evt) {
-                // Собираем новый порядок ID
+                // Collect new order of IDs
                 const itemEls = taskList.querySelectorAll('.task-item');
                 const taskIds = Array.from(itemEls).map(el => el.getAttribute('data-task-id'));
 
-                // Отправляем на сервер
+                // Send new order to server
                 fetch('/reorder', {
                     method: 'POST',
                     headers: {
@@ -40,15 +46,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        console.log('Порядок сохранен');
+                        console.log('Order saved successfully');
                     }
                 })
-                .catch(error => console.error('Ошибка сохранения порядка:', error));
+                .catch(error => console.error('Error saving order:', error));
             }
         });
     }
 
-    // 4. Поиск и фильтры
+    // 4. Search and Filtering
     const searchInput = document.getElementById('searchInput');
     const categoryFilter = document.getElementById('categoryFilter');
     const hideCompletedFilter = document.getElementById('hideCompletedFilter');
@@ -61,10 +67,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         tasks.forEach(task => {
             const content = task.getAttribute('data-content');
-            const category = task.getAttribute('data-category');
+            const category = task.getAttribute('data-category'); // Expecting key like 'cat_work'
             const isCompleted = task.getAttribute('data-completed') === 'true';
 
             const matchesSearch = content.includes(searchText);
+            // 'all' matches everything, otherwise check exact key match
             const matchesCategory = selectedCategory === 'all' || category === selectedCategory;
             const matchesStatus = !hideCompleted || !isCompleted;
 
@@ -82,6 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
         hideCompletedFilter.addEventListener('change', filterTasks);
     }
 });
+
+// --- Theme Helper Functions ---
 
 function setTheme(theme) {
     document.documentElement.setAttribute('data-bs-theme', theme);
@@ -107,6 +116,8 @@ function updateThemeIcon(theme) {
     }
 }
 
+// --- AJAX Toggles (Task Completion) ---
+
 async function toggleTask(id) {
     const row = document.getElementById(`task-${id}`);
     const icon = row.querySelector('.task-icon');
@@ -130,15 +141,18 @@ async function toggleTask(id) {
             }
             row.setAttribute('data-completed', data.completed);
 
+            // Re-apply filter immediately if "Hide Completed" is on
             const hideCompletedFilter = document.getElementById('hideCompletedFilter');
             if (hideCompletedFilter && hideCompletedFilter.checked) {
                 row.classList.add('d-none');
             }
         }
     } catch (error) {
-        console.error('Ошибка:', error);
+        console.error('Task toggle error:', error);
     }
 }
+
+// --- AJAX Toggles (Subtask Completion) ---
 
 async function toggleSubtask(subtaskId, parentTaskId) {
     const subtaskRow = document.getElementById(`subtask-${subtaskId}`);
@@ -160,6 +174,6 @@ async function toggleSubtask(subtaskId, parentTaskId) {
             }
         }
     } catch (error) {
-        console.error('Ошибка подзадачи:', error);
+        console.error('Subtask toggle error:', error);
     }
 }
