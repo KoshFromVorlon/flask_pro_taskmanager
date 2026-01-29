@@ -1,7 +1,6 @@
 from app.models import Task, User
 from datetime import datetime
 
-
 def test_calendar_api(auth_client, app):
     """Test that API returns correct JSON for the calendar."""
     with app.app_context():
@@ -14,7 +13,7 @@ def test_calendar_api(auth_client, app):
         task = Task(
             content="Event Task",
             deadline=datetime(2027, 1, 1, 12, 0),
-            category='cat_work',  # FIX: Use the KEY 'cat_work', not 'Работа'
+            category='work',
             user_id=user.id
         )
         db.session.add(task)
@@ -28,5 +27,5 @@ def test_calendar_api(auth_client, app):
     assert data[0]['title'] == "Event Task"
     assert "2027-01-01" in data[0]['start']
 
-    # Check if the color matches 'cat_work' (#0d6efd)
+    # Check if the color matches 'work' (#0d6efd - Blue)
     assert data[0]['backgroundColor'] == '#0d6efd'

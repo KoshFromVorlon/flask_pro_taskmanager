@@ -35,7 +35,16 @@ translations = {
         'deadline_prefix': 'due',
         'overdue_prefix': 'Overdue',
         'created_prefix': 'created',
-        'add_step_btn': '+ Step',  # Fixed: was hardcoded as "+ Шаг"
+        'add_step_btn': '+ Step',
+
+        # --- EDIT MODAL (New) ---
+        'label_task_name': 'Task Name',
+        'label_description': 'Description',
+        'label_category': 'Category',
+        'label_deadline': 'Deadline',
+        'label_files': 'Files',
+        'label_subtasks': 'Subtasks',
+        'btn_save_changes': 'Save All Changes',
 
         # --- CATEGORIES (Database Keys) ---
         'cat_work': 'Work',
@@ -75,7 +84,7 @@ translations = {
         'flash_file_size_error': 'File is too big! Max allowed: ',
         'flash_user_exists': 'This user already exists!',
         'flash_register_success': 'Registration successful! Welcome.',
-        'flash_login_success': 'Login successful!',
+        'flash_login_success': 'Successfully logged in.',
         'flash_login_error': 'Login error. Check your credentials.',
         'flash_logout': 'You have logged out.',
         'flash_pass_wrong': 'Old password is incorrect.',
@@ -118,6 +127,15 @@ translations = {
         'overdue_prefix': 'Просрочено',
         'created_prefix': 'созд.',
         'add_step_btn': '+ Шаг',
+
+        # --- EDIT MODAL (New) ---
+        'label_task_name': 'Название задачи',
+        'label_description': 'Описание',
+        'label_category': 'Категория',
+        'label_deadline': 'Дедлайн',
+        'label_files': 'Файлы',
+        'label_subtasks': 'Подзадачи',
+        'btn_save_changes': 'Сохранить всё',
 
         # --- CATEGORIES ---
         'cat_work': 'Работа',
@@ -200,6 +218,15 @@ translations = {
         'overdue_prefix': 'Прострочено',
         'created_prefix': 'створ.',
         'add_step_btn': '+ Крок',
+
+        # --- EDIT MODAL (New) ---
+        'label_task_name': 'Назва завдання',
+        'label_description': 'Опис',
+        'label_category': 'Категорія',
+        'label_deadline': 'Дедлайн',
+        'label_files': 'Файли',
+        'label_subtasks': 'Підзавдання',
+        'btn_save_changes': 'Зберегти все',
 
         # --- CATEGORIES ---
         'cat_work': 'Робота',

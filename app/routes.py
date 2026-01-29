@@ -449,18 +449,19 @@ def get_events():
     tasks = Task.query.filter(Task.user_id == current_user.id, Task.deadline != None).all()
     events = []
 
-    # Category colors
+    # FIXED: Use database keys ('work', 'home'), NOT translations
     category_colors = {
-        get_text('cat_work'): '#0d6efd',  # Blue
-        get_text('cat_home'): '#198754',  # Green
-        get_text('cat_study'): '#0dcaf0',  # Cyan
-        get_text('cat_shopping'): '#ffc107',  # Yellow
-        get_text('cat_important'): '#dc3545',  # Red
-        get_text('cat_other'): '#6c757d'  # Grey
+        'work': '#0d6efd',  # Blue
+        'home': '#198754',  # Green
+        'study': '#0dcaf0',  # Cyan
+        'shopping': '#ffc107',  # Yellow
+        'important': '#dc3545',  # Red
+        'other': '#6c757d'  # Grey
     }
     light_colors = ['#ffc107', '#0dcaf0']
 
     for task in tasks:
+        # Now this lookup will work correctly
         bg_color = category_colors.get(task.category, '#6c757d')
         text_color = '#000000' if bg_color in light_colors else '#ffffff'
 
