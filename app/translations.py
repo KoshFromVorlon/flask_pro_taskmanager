@@ -37,6 +37,10 @@ translations = {
         'created_prefix': 'created',
         'add_step_btn': '+ Step',
 
+        # [NEW] File Input Customization
+        'choose_file': 'Choose Files',
+        'no_file_selected': 'No file chosen',
+
         # --- EDIT MODAL (New) ---
         'label_task_name': 'Task Name',
         'label_description': 'Description',
@@ -127,6 +131,10 @@ translations = {
         'overdue_prefix': 'Просрочено',
         'created_prefix': 'созд.',
         'add_step_btn': '+ Шаг',
+
+        # [NEW] File Input Customization
+        'choose_file': 'Выбрать файлы',
+        'no_file_selected': 'Файл не выбран',
 
         # --- EDIT MODAL (New) ---
         'label_task_name': 'Название задачи',
@@ -219,10 +227,14 @@ translations = {
         'created_prefix': 'створ.',
         'add_step_btn': '+ Крок',
 
+        # [NEW] File Input Customization
+        'choose_file': 'Обрати файли',
+        'no_file_selected': 'Файл не обрано',
+
         # --- EDIT MODAL (New) ---
         'label_task_name': 'Назва завдання',
         'label_description': 'Опис',
-        'label_category': 'Категорія',
+        'label_category': 'Категория',
         'label_deadline': 'Дедлайн',
         'label_files': 'Файли',
         'label_subtasks': 'Підзавдання',

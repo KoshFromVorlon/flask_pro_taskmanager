@@ -4,7 +4,7 @@
 ![Flask](https://img.shields.io/badge/flask-3.0-green.svg)
 ![Docker](https://img.shields.io/badge/docker-available-blue)
 ![PostgreSQL](https://img.shields.io/badge/postgres-15-blue)
-![Coverage](https://img.shields.io/badge/coverage-77%25-brightgreen)
+![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 **TaskMaster Pro** is a modern, feature-rich web task manager with support for categories, subtasks, file attachments, 
@@ -41,12 +41,11 @@ fully containerized with **Docker**.
 * **Backend:** Python 3.9, Flask, SQLAlchemy, Flask-Login, Flask-Migrate.
 * **Database:** PostgreSQL (Production), SQLite (Dev/Test).
 * **Frontend:** Bootstrap 5, Jinja2, JavaScript (Fetch API, SortableJS).
-* **Testing:** Pytest, Coverage (77% test coverage).
-* **DevOps:** Docker, Docker Compose, GitHub Actions.
+* **Testing:** Pytest, Coverage (~85% test coverage).
+* **DevOps:** Docker, Docker Compose, GitHub Actions, Render.
 
 ## 🚀 Getting Started (Docker)
-
-This is the recommended way to run the application. You need **Docker** and **Docker Compose** installed.
+This is the recommended way to run the application for production-like environments.
 
 1. Clone the repository:
 ```bash
@@ -54,30 +53,58 @@ git clone [https://github.com/KoshFromVorlon/flask_pro_taskmanager.git](https://
 cd flask_pro_taskmanager
 ```
 
-2. Run the application:
-Start the containers (Web + DB):
+2. Start the application:
 ```bash
 docker-compose up --build
 ```
-3. Database Migrations
-Migrations run automatically on startup (run.py), but you can run them manually if needed:
+
+3. Initialize Database (First Run): Since auto-migrations are disabled in code for stability, run this command once the container is running:
 ```bash
 docker-compose exec web flask db upgrade
 ```
 
-4. Running Tests
-Run the test suite inside the container:
+4. Running Tests:
 ```bash
 docker-compose exec web coverage run -m pytest
 ```
 
-5. View the coverage report:
+## 🛠️ Getting Started (Local Development)
+If you prefer running without Docker for quick development:
+
+1. Create a virtual environment:
 ```bash
-docker-compose exec web coverage report
+python -m venv .venv
+# Windows:
+.venv\Scripts\activate
+# Mac/Linux:
+source .venv/bin/activate
 ```
 
-## 📂 Project Structure
-```text
+2. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+3. Apply database migrations:
+```bash
+flask db upgrade
+```
+
+4. Run the app:
+```bash
+flask run
+```
+
+## ☁️ Deployment (Render)
+The project is configured for deployment on Render.com.
+
+Configuration Settings:
+1. Build Command: pip install -r requirements.txt
+2. Pre-Deploy Command: flask db upgrade (Ensures the database is updated before the app starts)
+3. Start Command: gunicorn run:app
+
+
+📂 Project Structure
 flask_pro_taskmanager/
 ├── .github/
 │   └── workflows/
@@ -97,12 +124,13 @@ flask_pro_taskmanager/
 │   │   ├── profile.html # User settings (Avatar, Password, Username)
 │   │   └── register.html
 │   ├── __init__.py      # App Factory & Initialization
-│   ├── models.py        # Database Models (User, Task, Subtask, Attachment)
+│   ├── models.py        # Database Models (User, Task, Subtask, Attachment, Settings)
 │   ├── routes.py        # Main application logic & endpoints
 │   └── translations.py  # Dictionary for I18n (EN/RU/UA)
 ├── migrations/          # Database migration versions (Alembic)
 ├── tests/               # Test Suite (Pytest)
 │   ├── conftest.py      # Fixtures & Test DB config
+│   ├── test_advanced.py # Advanced features (Subtasks, Attachments, Updates)
 │   ├── test_api.py      # Calendar API tests
 │   ├── test_extended.py # Profile & Edge cases
 │   ├── test_models.py   # DB Model tests
@@ -116,4 +144,3 @@ flask_pro_taskmanager/
 ├── LICENSE              # MIT License
 ├── requirements.txt     # Python dependencies
 └── run.py               # Entry point
-```
