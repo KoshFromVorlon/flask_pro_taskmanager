@@ -1,46 +1,52 @@
-from app.models import Task, Subtask, Attachment, User
+import pytest
+from app.models import User, Task, Subtask, Attachment
+from app import db
 from datetime import datetime
 
 
-def test_get_task_details(auth_client, app):
-    """Тест API для получения данных задачи в модальное окно (JSON)."""
+# --- ADVANCED TASK EDITING TESTS ---
+
+def test_get_task_details_json(auth_client, app):
+    """
+    Test the API endpoint that provides full task data for the edit modal.
+    Verifies that JSON contains content, category, and subtasks.
+    """
     with app.app_context():
         user = User.query.filter_by(username='testuser').first()
         task = Task(content="Modal Task", category='cat_work', user_id=user.id)
-        # Добавим подзадачу сразу
         sub = Subtask(content="SubItem", parent_task=task)
 
-        db = app.extensions['sqlalchemy']
         db.session.add(task)
         db.session.add(sub)
         db.session.commit()
         task_id = task.id
 
-    # Запрашиваем данные для модалки
+    # Fetch task details via JSON API
     response = auth_client.get(f'/task/{task_id}/details')
 
     assert response.status_code == 200
     data = response.json
-
-    # Проверяем, что вернулись правильные поля
     assert data['content'] == "Modal Task"
     assert data['category'] == "cat_work"
     assert len(data['subtasks']) == 1
     assert data['subtasks'][0]['content'] == "SubItem"
 
 
-def test_full_update_task(auth_client, app):
-    """Тест полного редактирования задачи (название, описание, категория)."""
+def test_full_update_task_functionality(auth_client, app):
+    """
+    Test the full update route (content, category, description, deadline).
+    Ensures that changes are correctly persisted in the database.
+    """
     with app.app_context():
         user = User.query.filter_by(username='testuser').first()
+        # Create a task with original values
         task = Task(content="Original Title", description="Old Desc", user_id=user.id)
 
-        db = app.extensions['sqlalchemy']
         db.session.add(task)
         db.session.commit()
         task_id = task.id
 
-    # Отправляем форму полного обновления
+    # Submit the full update form data
     response = auth_client.post(f'/task/{task_id}/full_update', data={
         'content': 'Updated Title',
         'category': 'cat_study',
@@ -51,7 +57,7 @@ def test_full_update_task(auth_client, app):
     assert response.status_code == 200
     assert response.json['success'] is True
 
-    # Проверяем базу
+    # Verify updates in the database
     with app.app_context():
         updated_task = Task.query.get(task_id)
         assert updated_task.content == 'Updated Title'
@@ -60,20 +66,21 @@ def test_full_update_task(auth_client, app):
         assert updated_task.deadline.year == 2026
 
 
-def test_update_subtask_text(auth_client, app):
-    """Тест редактирования текста подзадачи."""
+def test_subtask_content_editing(auth_client, app):
+    """
+    Test updating the text content of an existing subtask.
+    Verifies that the subtask content changes without affecting other fields.
+    """
     with app.app_context():
         user = User.query.filter_by(username='testuser').first()
         task = Task(content="Parent", user_id=user.id)
         sub = Subtask(content="Old Subtask", parent_task=task)
-
-        db = app.extensions['sqlalchemy']
         db.session.add(task)
         db.session.add(sub)
         db.session.commit()
         sub_id = sub.id
 
-    # Отправляем JSON с новым текстом
+    # Submit new content as JSON
     response = auth_client.post(f'/subtask/{sub_id}/update_text', json={
         'content': 'New Subtask Text'
     })
@@ -81,39 +88,37 @@ def test_update_subtask_text(auth_client, app):
     assert response.status_code == 200
     assert response.json['success'] is True
 
-    # Проверяем базу
+    # Check DB for the updated subtask text
     with app.app_context():
         updated_sub = Subtask.query.get(sub_id)
         assert updated_sub.content == 'New Subtask Text'
 
 
-def test_delete_attachment_db(auth_client, app):
-    """Тест удаления записи о файле из базы данных."""
-    # Примечание: Мы не тестируем физическое удаление с диска, так как в тестах
-    # сложно мокать файловую систему без доп. библиотек, но проверяем логику БД.
-
+def test_attachment_database_deletion(auth_client, app):
+    """
+    Test removing an attachment record from the database.
+    Ensures the link between the task and the file is severed.
+    """
     with app.app_context():
         user = User.query.filter_by(username='testuser').first()
         task = Task(content="File Task", user_id=user.id)
-        # Имитируем прикрепленный файл
+        # Simulate an existing attachment
         attachment = Attachment(
             filename="secure_name.txt",
             original_name="my_doc.txt",
             parent_task=task
         )
-
-        db = app.extensions['sqlalchemy']
         db.session.add(task)
         db.session.add(attachment)
         db.session.commit()
         att_id = attachment.id
 
-    # Удаляем файл
+    # Perform deletion via POST request
     response = auth_client.post(f'/attachment/{att_id}/delete')
 
     assert response.status_code == 200
     assert response.json['success'] is True
 
-    # Проверяем, что файл исчез из базы
+    # Ensure the attachment is gone from the database
     with app.app_context():
         assert Attachment.query.get(att_id) is None
