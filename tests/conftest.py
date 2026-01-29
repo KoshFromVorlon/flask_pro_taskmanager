@@ -6,12 +6,12 @@ from werkzeug.security import generate_password_hash
 
 @pytest.fixture
 def app():
-    """Создает приложение с тестовой БД в памяти"""
+    """Creates the application with an in-memory test database."""
     app = create_app()
     app.config.update({
         "TESTING": True,
         "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
-        "WTF_CSRF_ENABLED": False,  # Отключаем проверку токенов форм для тестов
+        "WTF_CSRF_ENABLED": False,  # Disable CSRF token validation for tests
         "SECRET_KEY": "test_key"
     })
 
@@ -29,11 +29,12 @@ def client(app):
 
 @pytest.fixture
 def init_database(app):
-    """Создает двух пользователей: testuser (обычный) и adminuser (админ)"""
+    """Creates initial users for testing."""
     with app.app_context():
-        # Обычный юзер
+        # Create a regular user
         user = User(username='testuser', password=generate_password_hash('password', method='scrypt'))
-        # Второй юзер (для проверки прав доступа)
+
+        # Create a second user (to test access control and isolation)
         user2 = User(username='otheruser', password=generate_password_hash('password', method='scrypt'))
 
         db.session.add(user)
@@ -45,6 +46,6 @@ def init_database(app):
 
 @pytest.fixture
 def auth_client(client, init_database):
-    """Клиент, который уже вошел как 'testuser'"""
+    """A test client that is already logged in as 'testuser'."""
     client.post('/login', data={'username': 'testuser', 'password': 'password'})
     return client

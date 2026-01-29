@@ -1,29 +1,30 @@
 def test_home_page_redirect(client):
-    """Главная должна перекидывать на логин, если не вошел"""
+    """Home page should redirect to Login if not authenticated."""
     response = client.get('/')
-    assert response.status_code == 302  # 302 - это редирект
+    assert response.status_code == 302  # 302 Found (Redirect)
     assert '/login' in response.headers['Location']
 
 
 def test_login_page_loads(client):
-    """Страница логина должна открываться (код 200)"""
+    """Login page should load successfully (status 200)."""
     response = client.get('/login')
     assert response.status_code == 200
-    assert b"TaskMaster Pro" in response.data  # Проверяем, есть ли название на странице
+    assert b"TaskMaster Pro" in response.data  # Check if site title is present
 
 
 def test_register_process(client, app):
-    """Проверяем регистрацию нового пользователя"""
+    """Test new user registration process."""
     response = client.post('/register', data={
         'username': 'newuser',
         'password': 'newpassword'
     }, follow_redirects=True)
 
-    # После регистрации нас должно перекинуть на главную и показать флеш-сообщение
+    # After registration, it should redirect to index and show a flash message
     assert response.status_code == 200
-    # Ищем текст из translations.py (ключ flash_register_success)
-    # Внимание: тут текст зависит от языка по умолчанию (RU)
-    assert "Регистрация успешна!".encode('utf-8') in response.data
+
+    # UPDATE: We now check for the ENGLISH success message
+    # Key: 'flash_register_success' -> 'Registration successful! Welcome.'
+    assert b"Registration successful! Welcome." in response.data
 
     with app.app_context():
         from app.models import User
