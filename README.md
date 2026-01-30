@@ -105,6 +105,7 @@ Configuration Settings:
 
 
 📂 Project Structure
+```planetext
 flask_pro_taskmanager/
 ├── .github/
 │   └── workflows/
@@ -144,3 +145,4 @@ flask_pro_taskmanager/
 ├── LICENSE              # MIT License
 ├── requirements.txt     # Python dependencies
 └── run.py               # Entry point
+```
