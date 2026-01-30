@@ -11,7 +11,7 @@
 and an interactive calendar. The application is built with **Flask**, uses **PostgreSQL** for data storage, and is 
 fully containerized with **Docker**.
 
-> 🚀 **Live App:** [Open TaskMaster Pro](https://taskmaster-app-f77s.onrender.com) | **Status:** 🟢 Online & Stable
+> 🚀 **Live App:** [Open TaskMaster Pro](https://task-master.pro) | **Status:** 🟢 Online & Stable
 
 ## 🖼️ Screenshots
 
