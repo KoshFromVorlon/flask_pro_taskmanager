@@ -1,11 +1,10 @@
 from app.models import Task, User
-
+from app import db # Need explicit db import for db.session.get
 
 def test_create_task(auth_client, app):
     """Test creating a task via POST request."""
     response = auth_client.post('/', data={
         'content': 'Buy Milk',
-        # FIX: Use the category KEY 'cat_home', not the translated word 'Дом'
         'category': 'cat_home',
         'deadline': '2025-12-31T23:59'
     }, follow_redirects=True)
@@ -18,7 +17,6 @@ def test_create_task(auth_client, app):
         assert Task.query.count() == 1
         task = Task.query.first()
         assert task.content == 'Buy Milk'
-        # Verify the database stored the key correctly
         assert task.category == 'cat_home'
 
 
@@ -28,7 +26,6 @@ def test_delete_task(auth_client, app):
         user = User.query.filter_by(username='testuser').first()
         task = Task(content="Delete Me", user_id=user.id)
 
-        db = app.extensions['sqlalchemy']
         db.session.add(task)
         db.session.commit()
         task_id = task.id
@@ -46,7 +43,6 @@ def test_toggle_task(auth_client, app):
         user = User.query.filter_by(username='testuser').first()
         task = Task(content="Toggle Me", user_id=user.id)
 
-        db = app.extensions['sqlalchemy']
         db.session.add(task)
         db.session.commit()
         task_id = task.id
@@ -58,5 +54,6 @@ def test_toggle_task(auth_client, app):
     assert response.json['completed'] is True
 
     with app.app_context():
-        task = Task.query.get(task_id)
+        # FIX: Use db.session.get() instead of Task.query.get()
+        task = db.session.get(Task, task_id)
         assert task.completed is True

@@ -24,6 +24,17 @@ def get_text(key):
     return translations[lang].get(key, key)
 
 
+# --- HEALTH CHECK (For Render) ---
+@main.route('/health')
+@limiter.exempt
+def health():
+    """
+    Dedicated endpoint for uptime monitoring.
+    Exempt from rate limiting to prevent false positive downtime alerts.
+    """
+    return jsonify({'status': 'ok'}), 200
+
+
 # --- FILE CHECKS ---
 def allowed_file(filename):
     settings = Settings.get_settings()

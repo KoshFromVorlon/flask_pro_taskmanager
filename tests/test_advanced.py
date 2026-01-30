@@ -59,7 +59,8 @@ def test_full_update_task_functionality(auth_client, app):
 
     # Verify updates in the database
     with app.app_context():
-        updated_task = Task.query.get(task_id)
+        # FIX: Use db.session.get() instead of Task.query.get()
+        updated_task = db.session.get(Task, task_id)
         assert updated_task.content == 'Updated Title'
         assert updated_task.category == 'cat_study'
         assert updated_task.description == 'New Description'
@@ -90,7 +91,8 @@ def test_subtask_content_editing(auth_client, app):
 
     # Check DB for the updated subtask text
     with app.app_context():
-        updated_sub = Subtask.query.get(sub_id)
+        # FIX: Use db.session.get()
+        updated_sub = db.session.get(Subtask, sub_id)
         assert updated_sub.content == 'New Subtask Text'
 
 
@@ -121,4 +123,5 @@ def test_attachment_database_deletion(auth_client, app):
 
     # Ensure the attachment is gone from the database
     with app.app_context():
-        assert Attachment.query.get(att_id) is None
+        # FIX: Use db.session.get()
+        assert db.session.get(Attachment, att_id) is None

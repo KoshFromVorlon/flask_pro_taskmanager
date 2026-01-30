@@ -1,4 +1,5 @@
 from app.models import Task, User
+from app import db # Need explicit db import for db.session.get
 
 def test_update_task(auth_client, app):
     """Test editing task content."""
@@ -6,13 +7,11 @@ def test_update_task(auth_client, app):
     with app.app_context():
         user = User.query.filter_by(username='testuser').first()
         task = Task(content="Old Text", user_id=user.id)
-        db = app.extensions['sqlalchemy']
         db.session.add(task)
         db.session.commit()
         task_id = task.id
 
     # 2. Send POST request to update
-    # FIX: Use key 'cat_work' instead of Russian 'Работа'
     response = auth_client.post(f'/task/{task_id}/update', data={
         'content': 'New Updated Text',
         'category': 'cat_work'
@@ -22,15 +21,14 @@ def test_update_task(auth_client, app):
 
     # 3. Verify in database
     with app.app_context():
-        updated_task = Task.query.get(task_id)
+        # FIX: Use db.session.get() instead of Task.query.get()
+        updated_task = db.session.get(Task, task_id)
         assert updated_task.content == 'New Updated Text'
-        # Optional: verify category was updated/maintained correctly
         assert updated_task.category == 'cat_work'
 
 
 def test_account_update(auth_client, app):
     """Test profile update (username change)."""
-    # FIX: Route is /profile. Field name in HTML is 'avatar', not 'picture'.
     response = auth_client.post('/profile', data={
         'username': 'new_testuser',
         'avatar': (b'', '')  # Simulating empty file upload

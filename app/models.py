@@ -1,5 +1,5 @@
 from flask_login import UserMixin
-from datetime import datetime
+from datetime import datetime, timezone
 from . import db
 
 
@@ -15,10 +15,10 @@ class User(UserMixin, db.Model):
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.String(200), nullable=False)
-    # ВОТ ОНО, НОВОЕ ПОЛЕ:
     description = db.Column(db.Text, nullable=True)
     category = db.Column(db.String(50), default='other')
-    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+    # FIX: Use lambda with timezone.utc to avoid DeprecationWarning
+    date_created = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     deadline = db.Column(db.DateTime, nullable=True)
     completed = db.Column(db.Boolean, default=False)
     position = db.Column(db.Integer, default=0)
