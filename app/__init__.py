@@ -5,6 +5,8 @@ from flask_login import LoginManager, current_user
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from werkzeug.security import generate_password_hash
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from config import Config
 from .translations import translations
 
@@ -12,29 +14,32 @@ db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
 
+# Initialize Limiter for brute-force protection
+# We use in-memory storage, which is sufficient for this deployment
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://"
+)
 
 # --- ADMIN PANEL CONFIGURATION ---
 class SecureModelView(ModelView):
     def is_accessible(self):
         return current_user.is_authenticated and current_user.is_admin
 
-
 class UserView(SecureModelView):
     column_list = ('username', 'is_admin', 'tasks')
     form_columns = ('username', 'is_admin')
 
-
 class TaskView(SecureModelView):
     column_list = ('content', 'category', 'completed', 'author', 'date_created')
     form_columns = ('content', 'category', 'completed', 'author')
-
 
 class SettingsView(SecureModelView):
     can_create = False
     can_delete = False
     column_list = ('allowed_extensions', 'max_file_size_mb')
     form_columns = ('allowed_extensions', 'max_file_size_mb')
-
 
 def create_app():
     app = Flask(__name__)
@@ -47,10 +52,14 @@ def create_app():
     login_manager.init_app(app)
     login_manager.login_view = 'main.login'
 
+    # Initialize Rate Limiter
+    limiter.init_app(app)
+
     from .models import User, Task, Settings
 
     # Initialize Admin Panel
-    admin = Admin(app, name='TaskManager Admin')
+    # 'template_mode="bootstrap4"' is important for our custom dark theme styling
+    admin = Admin(app, name='TaskManager Admin', template_mode='bootstrap4')
 
     # Add Views (using English names)
     admin.add_view(UserView(User, db.session, name='Users'))
@@ -70,7 +79,6 @@ def create_app():
         return dict(lang=lang_code, t=translations[lang_code])
 
     with app.app_context():
-        # create_default_admin() — REMOVED: default admin is no longer created automatically
         create_default_settings()
 
     @login_manager.user_loader
@@ -78,7 +86,6 @@ def create_app():
         return User.query.get(int(user_id))
 
     return app
-
 
 def create_default_settings():
     from .models import Settings

@@ -52,6 +52,12 @@
             </div>
         </div>
 
+        <div class="d-flex justify-content-end mb-3">
+            <button class="btn btn-outline-secondary btn-sm" id="toggleCompletedBtn" onclick="toggleCompletedTasks()">
+                <i class="bi bi-eye-slash"></i> <span>{{ t.hide_completed if t.hide_completed else 'Hide Completed' }}</span>
+            </button>
+        </div>
+
         <div class="list-group" id="taskList">
             {% for task in tasks %}
             <div class="list-group-item list-group-item-action d-flex align-items-start task-item {{ 'list-group-item-secondary' if task.completed else '' }}"

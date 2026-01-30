@@ -1,11 +1,12 @@
 import os
 import secrets
+import re
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, make_response, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from datetime import datetime
-from . import db
+from . import db, limiter
 from .models import User, Task, Subtask, Attachment, Settings
 from .translations import translations
 
@@ -13,8 +14,13 @@ main = Blueprint('main', __name__)
 
 
 def get_text(key):
+    """
+    Helper function to retrieve translation based on cookie.
+    Defaults to 'ru' if not found.
+    """
     lang = request.cookies.get('lang', 'ru')
     if lang not in translations: lang = 'ru'
+    # Return the translation or the key itself if missing
     return translations[lang].get(key, key)
 
 
@@ -68,20 +74,29 @@ def set_language(lang_code):
     return resp
 
 
-# --- AUTH ---
+# --- AUTHENTICATION ---
+
 @main.route('/register', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")  # Rate limit to prevent spam registrations
 def register():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
 
+        # 1. Password Complexity Check
+        # Must be at least 8 chars, contain digits and letters
+        if len(password) < 8 or not re.search(r"\d", password) or not re.search(r"[a-zA-Z]", password):
+            # You should add 'flash_weak_password' to your translations.py
+            flash("Password must be at least 8 chars and contain letters and numbers.", 'error')
+            return redirect(url_for('main.register'))
+
         if User.query.filter_by(username=username).first():
-            print(f"⚠️ Registration attempt for existing user: {username}")  # LOG
+            print(f"⚠️ Registration attempt for existing user: {username}")
             flash(get_text('flash_user_exists'), 'error')
             return redirect(url_for('main.register'))
 
         user = User(username=username, password=generate_password_hash(password, method='scrypt'))
-        # First user becomes admin
+        # First registered user becomes admin automatically
         if User.query.count() == 0:
             user.is_admin = True
 
@@ -89,13 +104,14 @@ def register():
         db.session.commit()
         login_user(user)
 
-        print(f"✅ New user registered: {username}")  # LOG
+        print(f"✅ New user registered: {username}")
         flash(get_text('flash_register_success'), 'success')
         return redirect(url_for('main.index'))
     return render_template('register.html')
 
 
 @main.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")  # Rate limit to prevent brute-force attacks
 def login():
     if request.method == 'POST':
         username = request.form.get('username')
@@ -104,11 +120,11 @@ def login():
 
         if user and check_password_hash(user.password, password):
             login_user(user)
-            print(f"🔑 User logged in: {user.username}")  # LOG
+            print(f"🔑 User logged in: {user.username}")
             flash(get_text('flash_login_success'), 'success')
             return redirect(url_for('main.index'))
 
-        print(f"❌ Failed login attempt: {username}")  # LOG
+        print(f"❌ Failed login attempt: {username}")
         flash(get_text('flash_login_error'), 'error')
     return render_template('login.html')
 
@@ -116,7 +132,7 @@ def login():
 @main.route('/logout')
 @login_required
 def logout():
-    print(f"🚪 User logged out: {current_user.username}")  # LOG
+    print(f"🚪 User logged out: {current_user.username}")
     logout_user()
     return redirect(url_for('main.login'))
 
@@ -135,7 +151,7 @@ def profile():
                         filename = save_picture(file)
                         current_user.avatar = filename
                         db.session.commit()
-                        print(f"🖼️ User {current_user.username} updated avatar")  # LOG
+                        print(f"🖼️ User {current_user.username} updated avatar")
                         flash(get_text('flash_avatar_uploaded'), 'success')
                     except Exception as e:
                         print(f"⚠️ Avatar upload error: {e}")
@@ -147,13 +163,19 @@ def profile():
         if 'old_password' in request.form and request.form['old_password']:
             old_password = request.form.get('old_password')
             new_password = request.form.get('new_password')
+
             if not check_password_hash(current_user.password, old_password):
                 flash(get_text('flash_pass_wrong'), 'error')
             else:
-                current_user.password = generate_password_hash(new_password, method='scrypt')
-                db.session.commit()
-                print(f"🔐 User {current_user.username} changed password")  # LOG
-                flash(get_text('flash_pass_changed'), 'success')
+                # Check complexity for new password
+                if len(new_password) < 8 or not re.search(r"\d", new_password) or not re.search(r"[a-zA-Z]",
+                                                                                                new_password):
+                    flash("Password must be at least 8 chars and contain letters and numbers.", 'error')
+                else:
+                    current_user.password = generate_password_hash(new_password, method='scrypt')
+                    db.session.commit()
+                    print(f"🔐 User {current_user.username} changed password")
+                    flash(get_text('flash_pass_changed'), 'success')
 
         # 3. Update Username
         new_username = request.form.get('username')
@@ -165,7 +187,7 @@ def profile():
                 old_name = current_user.username
                 current_user.username = new_username
                 db.session.commit()
-                print(f"👤 Username changed: {old_name} -> {new_username}")  # LOG
+                print(f"👤 Username changed: {old_name} -> {new_username}")
                 flash(get_text('flash_profile_updated'), 'success')
 
         return redirect(url_for('main.profile'))
@@ -220,7 +242,7 @@ def index():
                         flash(f"Error saving file: {e}", 'error')
 
             db.session.commit()
-            print(f"📝 {current_user.username} created task: '{content}' (+{files_count} files)")  # LOG
+            print(f"📝 {current_user.username} created task: '{content}' (+{files_count} files)")
             flash(get_text('flash_task_added'), 'success')
             return redirect(url_for('main.index'))
 
@@ -228,7 +250,7 @@ def index():
     return render_template('index.html', tasks=tasks, now=datetime.now())
 
 
-# --- ADVANCED EDITING ROUTES (NEW) ---
+# --- ADVANCED EDITING ROUTES ---
 
 # 1. Get full task details for the modal
 @main.route('/task/<int:task_id>/details')
@@ -245,7 +267,7 @@ def get_task_details(task_id):
     # Collect subtasks
     subtasks = [{'id': s.id, 'content': s.content, 'completed': s.completed} for s in task.subtasks]
 
-    # Description field check (assuming you might add it later to the model, handling it safely)
+    # Description field check
     description = getattr(task, 'description', "")
 
     return jsonify({
@@ -299,7 +321,7 @@ def full_update_task(task_id):
                     print(f"Error saving new file in edit mode: {e}")
 
     db.session.commit()
-    print(f"✏️ Task {task_id} fully updated by {current_user.username}")  # LOG
+    print(f"✏️ Task {task_id} fully updated by {current_user.username}")
     return jsonify({'success': True})
 
 
@@ -321,7 +343,7 @@ def delete_attachment(attachment_id):
 
     db.session.delete(attachment)
     db.session.commit()
-    print(f"🗑️ Attachment {attachment_id} deleted")  # LOG
+    print(f"🗑️ Attachment {attachment_id} deleted")
     return jsonify({'success': True})
 
 
@@ -339,8 +361,6 @@ def update_subtask_text(subtask_id):
     return jsonify({'success': True})
 
 
-# --- END NEW ROUTES ---
-
 @main.route('/task/<int:task_id>/update', methods=['POST'])
 @login_required
 def update_task(task_id):
@@ -355,7 +375,7 @@ def update_task(task_id):
     if category: task.category = category
 
     db.session.commit()
-    print(f"✏️ Task {task_id} updated (quick edit)")  # LOG
+    print(f"✏️ Task {task_id} updated (quick edit)")
     return redirect(url_for('main.index'))
 
 
@@ -383,7 +403,7 @@ def delete_task(id):
         title_backup = task.content
         db.session.delete(task)
         db.session.commit()
-        print(f"🗑️ {current_user.username} deleted task: '{title_backup}'")  # LOG
+        print(f"🗑️ {current_user.username} deleted task: '{title_backup}'")
         flash(get_text('flash_task_deleted'), 'success')
     return redirect(url_for('main.index'))
 
@@ -396,7 +416,7 @@ def toggle(id):
         task.completed = not task.completed
         db.session.commit()
         status = "completed" if task.completed else "active"
-        print(f"✅ Task '{task.content}' is now {status}")  # LOG
+        print(f"✅ Task '{task.content}' is now {status}")
         return jsonify({'success': True, 'completed': task.completed})
     return jsonify({'success': False})
 
@@ -410,7 +430,7 @@ def add_subtask(task_id):
         subtask = Subtask(content=content, parent_task=task)
         db.session.add(subtask)
         db.session.commit()
-        print(f"➕ Subtask added to task {task_id}")  # LOG
+        print(f"➕ Subtask added to task {task_id}")
     return redirect(url_for('main.index'))
 
 
@@ -449,7 +469,7 @@ def get_events():
     tasks = Task.query.filter(Task.user_id == current_user.id, Task.deadline != None).all()
     events = []
 
-    # FIXED: Use database keys ('work', 'home'), NOT translations
+    # Map database keys to colors
     category_colors = {
         'work': '#0d6efd',  # Blue
         'home': '#198754',  # Green
@@ -461,7 +481,6 @@ def get_events():
     light_colors = ['#ffc107', '#0dcaf0']
 
     for task in tasks:
-        # Now this lookup will work correctly
         bg_color = category_colors.get(task.category, '#6c757d')
         text_color = '#000000' if bg_color in light_colors else '#ffffff'
 

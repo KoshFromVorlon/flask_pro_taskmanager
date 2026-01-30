@@ -4,7 +4,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- 1. Custom File Input Logic (Отображение имен файлов) ---
+    // --- 1. Custom File Input Logic ---
     const fileInput = document.getElementById('customFile');
     const fileNameDisplay = document.getElementById('fileNameDisplay');
 
@@ -46,9 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (taskList) {
         new Sortable(taskList, {
             animation: 150,
-            handle: '.list-group-item', // Можно тянуть за весь элемент
+            handle: '.list-group-item',
             onEnd: function (evt) {
-                // Собираем новый порядок ID
                 var order = this.toArray();
                 var taskIds = order.map(id => id.replace('task-', ''));
 
@@ -61,40 +60,25 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- 5. Search and Filtering ---
+    // --- 5. Search and Filtering (Updated for Visibility Toggle) ---
+
+    // Check initial state from LocalStorage and update UI
+    const isHidden = localStorage.getItem('hideCompleted') === 'true';
+    updateToggleButtonUI(isHidden);
+
+    // Attach event listeners for search and categories
     const searchInput = document.getElementById('searchInput');
     const categoryFilter = document.getElementById('categoryFilter');
-    const hideCompletedFilter = document.getElementById('hideCompletedFilter');
-    // Обновляем селектор, чтобы он находил задачи внутри списка
-    const tasks = taskList ? taskList.querySelectorAll('.task-item') : [];
-
-    function filterTasks() {
-        const searchText = searchInput ? searchInput.value.toLowerCase() : '';
-        const selectedCategory = categoryFilter ? categoryFilter.value : 'all';
-        const hideCompleted = hideCompletedFilter ? hideCompletedFilter.checked : false;
-
-        tasks.forEach(task => {
-            const content = task.getAttribute('data-content') || '';
-            const category = task.getAttribute('data-category');
-            const isCompleted = task.getAttribute('data-completed') === 'true';
-
-            const matchesSearch = content.includes(searchText);
-            const matchesCategory = selectedCategory === 'all' || category === selectedCategory;
-            const matchesStatus = !hideCompleted || !isCompleted;
-
-            if (matchesSearch && matchesCategory && matchesStatus) {
-                task.classList.remove('d-none');
-            } else {
-                task.classList.add('d-none');
-            }
-        });
-    }
 
     if (searchInput) {
-        searchInput.addEventListener('input', filterTasks);
-        categoryFilter.addEventListener('change', filterTasks);
-        hideCompletedFilter.addEventListener('change', filterTasks);
+        searchInput.addEventListener('input', window.filterTasks);
     }
+    if (categoryFilter) {
+        categoryFilter.addEventListener('change', window.filterTasks);
+    }
+
+    // Run filter on load to apply "Hide Completed" state
+    window.filterTasks();
 });
 
 // --- Theme Helper Functions ---
@@ -123,9 +107,79 @@ function updateThemeIcon(theme) {
     }
 }
 
-// --- GLOBAL FUNCTIONS (Used in HTML onclick) ---
+// --- GLOBAL FUNCTIONS ---
 
-// 1. Open Edit Modal
+// 1. Filter Tasks Logic (Global)
+window.filterTasks = function() {
+    const searchInput = document.getElementById('searchInput');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const taskList = document.getElementById('taskList');
+    const tasks = taskList ? taskList.querySelectorAll('.task-item') : [];
+
+    const searchText = searchInput ? searchInput.value.toLowerCase() : '';
+    const selectedCategory = categoryFilter ? categoryFilter.value : 'all';
+
+    // Read directly from storage to allow persistent state
+    const hideCompleted = localStorage.getItem('hideCompleted') === 'true';
+
+    tasks.forEach(task => {
+        const content = task.getAttribute('data-content') || '';
+        const category = task.getAttribute('data-category');
+        const isCompleted = task.getAttribute('data-completed') === 'true';
+
+        const matchesSearch = content.includes(searchText);
+        const matchesCategory = selectedCategory === 'all' || category === selectedCategory;
+
+        // Logic: If hideCompleted is active, show only if NOT completed
+        const matchesStatus = !hideCompleted || !isCompleted;
+
+        if (matchesSearch && matchesCategory && matchesStatus) {
+            task.classList.remove('d-none');
+        } else {
+            task.classList.add('d-none');
+        }
+    });
+};
+
+// 2. Toggle Completed Visibility (Global, called by button)
+window.toggleCompletedTasks = function() {
+    const currentState = localStorage.getItem('hideCompleted') === 'true';
+    const newState = !currentState;
+
+    // Save to local storage
+    localStorage.setItem('hideCompleted', newState);
+
+    // Update Button UI
+    updateToggleButtonUI(newState);
+
+    // Re-run filter logic
+    window.filterTasks();
+};
+
+function updateToggleButtonUI(hide) {
+    const btn = document.getElementById('toggleCompletedBtn');
+    if (!btn) return;
+
+    const icon = btn.querySelector('i');
+
+    if (hide) {
+        btn.classList.add('active', 'btn-secondary');
+        btn.classList.remove('btn-outline-secondary');
+        if(icon) {
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+        }
+    } else {
+        btn.classList.remove('active', 'btn-secondary');
+        btn.classList.add('btn-outline-secondary');
+        if(icon) {
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        }
+    }
+}
+
+// 3. Open Edit Modal
 window.openEditModal = function(taskId) {
     document.getElementById('editFilesList').innerHTML = 'Loading...';
     document.getElementById('editSubtasksList').innerHTML = '';
@@ -139,7 +193,6 @@ window.openEditModal = function(taskId) {
             document.getElementById('editTaskContent').value = data.content;
             document.getElementById('editTaskDesc').value = data.description;
             document.getElementById('editTaskCategory').value = data.category;
-            // Обрезаем секунды для input type="datetime-local"
             document.getElementById('editTaskDeadline').value = data.deadline ? data.deadline.slice(0, 16) : '';
 
             // Render files
@@ -178,7 +231,7 @@ window.openEditModal = function(taskId) {
         });
 };
 
-// 2. Save Changes
+// 4. Save Changes
 window.saveTaskChanges = function() {
     const taskId = document.getElementById('editTaskId').value;
     const form = document.getElementById('editTaskForm');
@@ -198,7 +251,7 @@ window.saveTaskChanges = function() {
     });
 };
 
-// 3. Delete File
+// 5. Delete File
 window.deleteFile = function(attachmentId) {
     if (!confirm('Permanently delete this file?')) return;
     fetch(`/attachment/${attachmentId}/delete`, { method: 'POST' })
@@ -213,7 +266,7 @@ window.deleteFile = function(attachmentId) {
         });
 };
 
-// 4. Update Subtask Text
+// 6. Update Subtask Text
 window.updateSubtaskText = function(subtaskId, newText) {
     fetch(`/subtask/${subtaskId}/update_text`, {
         method: 'POST',
@@ -222,7 +275,7 @@ window.updateSubtaskText = function(subtaskId, newText) {
     });
 };
 
-// 5. Toggle Task (Updated for UI updates)
+// 7. Toggle Task
 window.toggleTask = function(taskId) {
     fetch(`/toggle/${taskId}`, { method: 'POST' })
         .then(response => response.json())
@@ -231,7 +284,7 @@ window.toggleTask = function(taskId) {
         });
 };
 
-// 6. Toggle Subtask (Updated for UI updates)
+// 8. Toggle Subtask
 window.toggleSubtask = function(subId, parentTaskId) {
     fetch(`/toggle_subtask/${subId}`, { method: 'POST' })
         .then(response => response.json())
